@@ -9,15 +9,14 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: "http://127.0.0.1:5500",
+    origin: "http://127.0.0.1:5500/frontend",
     methods: ["POST", "OPTIONS"],
     allowedHeaders: ["Content-Type"],
     credentials: true,
   })
 );
 
-// ✅ Handles all OPTIONS preflight requests safely
-// app.options("*", cors());
+app.options("*", cors());
 
 app.use(bodyParser.json());
 
