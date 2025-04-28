@@ -9,19 +9,24 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: "http://127.0.0.1:5500/frontend",
+    origin: "https://ai-magic-text-refiner.vercel.app/",
     methods: ["POST", "OPTIONS"],
     allowedHeaders: ["Content-Type"],
     credentials: true,
   })
 );
 
-app.options("*", cors());
+// app.options("*", cors());
 
 app.use(bodyParser.json());
 
+app.get("/", (req,res) => {
+  res.send("Welcome your server is running.");
+})
+
 app.post("/refine", async (req, res) => {
   const userText = req.body.text;
+  console.log("user text:: ",userText);
 
   const prompt = `Refine the given text by first understanding the intended action or emotion behind it.
   Look for any minor spelling mistakes and correct them while maintaining the original tone and meaning.
