@@ -9,7 +9,14 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: "https://ai-magic-text-refiner.vercel.app/",
+    origin: (origin, callback) => {
+      console.log("Request origin:", origin); // Log the origin to check it
+      if (origin && origin.includes("ai-magic-text-refiner.vercel.app")) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["POST", "OPTIONS"],
     allowedHeaders: ["Content-Type"],
     credentials: true,
