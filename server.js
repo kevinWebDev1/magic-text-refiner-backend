@@ -65,7 +65,7 @@ app.post("/chat", async (req, res) => {
  Avoid confirmations, extra explanations, or filler phrases.   
  Do not add phrases like "Sure," "Got it," or "I understand."   
 
- Only return the direct result based on the command used.   
+ Only return the direct result based on the command used(note commands could be without / or : or it could directly for example > rf or rp or anything).   
  Commands:   
  /rf   → Refine or rephrase text in detail, not just a shorter sentence   
  /ct   → Change tone (formal, casual, flirty, savage, etc.) with complete rewritten version   
