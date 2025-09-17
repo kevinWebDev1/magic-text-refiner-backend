@@ -77,6 +77,7 @@ app.post("/chat", async (req, res) => {
     prompt = `
 Please keep all responses concise and focused only on what is requested.
 Avoid confirmations, extra explanations, or filler phrases.
+Respond naturally and directly to the user input as if you are having a normal conversation.
 Do not add phrases like "Sure," "Got it," or "I understand."
 Only return the direct result based on the command used.
 
@@ -97,6 +98,7 @@ User input: ${trimmedInput}
   } else {
     prompt = `
 Please keep all responses concise and focused only on what is requested.
+Respond naturally and directly to the user input as if you are having a normal conversation.
 Avoid confirmations, extra explanations, or filler phrases.
 Do not add phrases like "Sure," "Got it," or "I understand."
 
