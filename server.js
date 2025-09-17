@@ -61,23 +61,52 @@ app.post("/chat", async (req, res) => {
   const userText = req.body.text || "";
   console.log("user text:: ", userText);
 
-  const prompt = `Please keep all responses concise and focused only on what is requested.   
- Avoid confirmations, extra explanations, or filler phrases.   
- Do not add phrases like "Sure," "Got it," or "I understand."   
+  // List of valid commands
+  const commands = ["rf", "ct", "sm", "el", "sh", "tr", "img", "vid", "mem", "rp"];
 
- Only return the direct result based on the command used(note commands could be without / or : or it could directly for example > rf or rp or anything).   
- Commands:   
- /rf   → Refine or rephrase text in detail, not just a shorter sentence   
- /ct   → Change tone (formal, casual, flirty, savage, etc.) with complete rewritten version   
- /sm   → Summarize text into clear points or a short paragraph   
- /el   → Expand text with more details, depth, and context   
- /sh   → Shorten text while keeping main meaning intact   
- /tr   → Translate text (specify target language after command)   
- /img  → Generate a full, detailed image prompt (not just a sentence)   
- /vid  → Generate a full, detailed video prompt (not just a sentence)   
- /mem  → Create a meme caption or idea with context   
- /rp → Write a reply on my behalf in the given context. The reply should not sound mechanical; it can include reasoning or interpretation of why the question was asked, and respond naturally as if I’m answering in real conversation.  
- "${userText}"`;
+  // Trim user input
+  const trimmedInput = userText.trim();
+
+  // Check if input starts with a command
+  let isCommand = new RegExp(`^\/?(${commands.join("|")}):?`, "i").test(trimmedInput);
+
+  // Construct the prompt based on whether it's a command
+  let prompt;
+
+  if (isCommand) {
+    prompt = `
+Please keep all responses concise and focused only on what is requested.
+Avoid confirmations, extra explanations, or filler phrases.
+Do not add phrases like "Sure," "Got it," or "I understand."
+Only return the direct result based on the command used.
+
+Commands:
+ /rf   → Refine or rephrase text in detail, not just a shorter sentence
+ /ct   → Change tone (formal, casual, flirty, savage, etc.) with complete rewritten version
+ /sm   → Summarize text into clear points or a short paragraph
+ /el   → Expand text with more details, depth, and context
+ /sh   → Shorten text while keeping main meaning intact
+ /tr   → Translate text (specify target language after command)
+ /img  → Generate a full, detailed image prompt (not just a sentence)
+ /vid  → Generate a full, detailed video prompt (not just a sentence)
+ /mem  → Create a meme caption or idea with context
+ /rp   → Write a reply on my behalf in the given context. The reply should not sound mechanical; it can include reasoning or interpretation of why the question was asked, and respond naturally.
+
+User input: ${trimmedInput}
+`;
+  } else {
+    prompt = `
+Please keep all responses concise and focused only on what is requested.
+Avoid confirmations, extra explanations, or filler phrases.
+Do not add phrases like "Sure," "Got it," or "I understand."
+
+User input: ${trimmedInput}
+`;
+  }
+
+  // Optional: log if it's detected as a command
+  console.log("Is command?", isCommand);
+
 
   try {
     const response = await axios.post(
