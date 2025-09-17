@@ -56,6 +56,55 @@ app.post("/refine", async (req, res) => {
     res.status(500).json({ error: "Failed to refine text." });
   }
 });
+// -------------------------------------------------------------------------------------
+app.post("/chat", async (req, res) => {
+  const userText = req.body.text || "";
+  console.log("user text:: ", userText);
+
+  const prompt = `Please keep all responses concise and focused only on what is requested.   
+ Avoid confirmations, extra explanations, or filler phrases.   
+ Do not add phrases like "Sure," "Got it," or "I understand."   
+
+ Only return the direct result based on the command used.   
+ Commands:   
+ /rf   → Refine or rephrase text in detail, not just a shorter sentence   
+ /ct   → Change tone (formal, casual, flirty, savage, etc.) with complete rewritten version   
+ /sm   → Summarize text into clear points or a short paragraph   
+ /el   → Expand text with more details, depth, and context   
+ /sh   → Shorten text while keeping main meaning intact   
+ /tr   → Translate text (specify target language after command)   
+ /img  → Generate a full, detailed image prompt (not just a sentence)   
+ /vid  → Generate a full, detailed video prompt (not just a sentence)   
+ /mem  → Create a meme caption or idea with context   
+ /rp → Write a reply on my behalf in the given context. The reply should not sound mechanical; it can include reasoning or interpretation of why the question was asked, and respond naturally as if I’m answering in real conversation.  
+ "${userText}"`;
+
+  try {
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const chatText =
+      response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+
+    res.json({ chatText });
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+    res.status(500).json({ error: "Failed to chat text." });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
