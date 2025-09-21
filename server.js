@@ -3,6 +3,9 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 require("dotenv").config();
 const axios = require("axios");
+// local requires
+const { CMDs } = require('./data.js');
+const { CMS_PROMPTS } = require('./data.js');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,31 +15,27 @@ app.use(cors());
 
 app.use(bodyParser.json());
 
-app.get("/", (req, res) => {
+// API configuration
+const MODEL_NAME = 'gemini-2.5-flash-preview-05-20';
+const API_KEY = process.env.GEMINI_API_KEY;
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
+
+app.get("/", (_, res) => {
   res.send("Welcome your server is running.");
 });
 
-app.post("/refine", async (req, res) => {
-  const userText = req.body.text || "";
-  console.log("user text:: ", userText);
+app.post("/refine", async (req, res) => { // Refine End Point
+  const userText = req.body.text?.trim() || "";
 
-  const prompt = `Refine the given text by first understanding the intended action or emotion behind it.
-  Look for any minor spelling mistakes and correct them while maintaining the original tone and meaning.
-  If text is in hinglish, then keep it hinglish but correct any minor spelling mistakes.
-  When refining text, if two words are approximately 90% similar in spelling and appear in the same sentence or structure,
-  do not assume they are different words unless the context clearly demands it.
-  Focus on improving clarity without altering the essence or intent of the message,
-  as do fix grammer mistakes and type the missing words even they are in hinglish or english.
-  Do not add extra context, no prefixes like "refined text:", or explanations.
-  Text: "${userText}"`;
+  PROMPT_TO_REFINE_TEXT = `Decode and correct heavily abbreviated or misspelled Hinglish text. Fix grammar, spelling, and clarity while Preserve its original language (Romanized or native script), tone, and intent.. Provide only the final corrected version: ${userText}
+`
 
   try {
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    const response = await axios.post(API_URL,
       {
         contents: [
           {
-            parts: [{ text: prompt }],
+            parts: [{ text: PROMPT_TO_REFINE_TEXT }],
           },
         ],
       },
@@ -57,69 +56,19 @@ app.post("/refine", async (req, res) => {
   }
 });
 // -------------------------------------------------------------------------------------
-app.post("/chat", async (req, res) => {
-  const userText = req.body.text || "";
-  console.log("user text:: ", userText);
+app.post("/chat", async (req, res) => {  // Chat End Point
+  const userText = req.body.text?.trim() || "";
 
-  // List of valid commands
-  const commands = ["rf", "ct", "sm", "el", "sh", "tr", "img", "vid", "mem", "rp"];
-
-  // Trim user input
-  const trimmedInput = userText.trim();
-
-  // Check if input starts with a command
-  let isCommand = new RegExp(`^\/?(${commands.join("|")}):?`, "i").test(trimmedInput);
-
-  // Construct the prompt based on whether it's a command
-  let prompt;
-
-  if (isCommand) {
-    prompt = `
-Please keep all responses concise and focused only on what is requested.
-Avoid confirmations, extra explanations, or filler phrases.
-Respond naturally and directly to the user input as if you are having a normal conversation.
-Do not add phrases like "Sure," "Got it," or "I understand."
-Only return the direct result based on the command used.
-
-Commands:
- /rf   → Refine or rephrase text in detail, not just a shorter sentence
- /ct   → Change tone (formal, casual, flirty, savage, etc.) with complete rewritten version
- /sm   → Summarize text into clear points or a short paragraph
- /el   → Expand text with more details, depth, and context
- /sh   → Shorten text while keeping main meaning intact
- /tr   → Translate text (specify target language after command)
- /img  → Generate a full, detailed image prompt (not just a sentence)
- /vid  → Generate a full, detailed video prompt (not just a sentence)
- /mem  → Create a meme caption or idea with context
- /rp   → Write a reply on my behalf in the given context. The reply should not sound mechanical; it can include reasoning or interpretation of why the question was asked, and respond naturally.
-
-User input: ${trimmedInput}
-`;
-  } else {
-    prompt = `
-Please keep all responses concise and focused only on what is requested.
-Respond naturally and directly to the user input as if you are having a normal conversation.
-Avoid confirmations, extra explanations, or filler phrases.
-Do not add phrases like "Sure," "Got it," or "I understand."
-
-User input: ${trimmedInput}
-`;
-  }
-
-  // Optional: log if it's detected as a command
-  console.log("Is command?", isCommand);
-
+  const prompt = `${getPrompt(userText)} ${userText}`
 
   try {
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        contents: [
-          {
-            parts: [{ text: prompt }],
-          },
-        ],
-      },
+    const response = await axios.post(API_URL, {
+      contents: [
+        {
+          parts: [{ text: prompt }],
+        },
+      ],
+    },
       {
         headers: {
           "Content-Type": "application/json",
@@ -127,10 +76,10 @@ User input: ${trimmedInput}
       }
     );
 
-    const chatText =
+    const chatReply =
       response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
 
-    res.json({ chatText });
+    res.json({ chatReply });
   } catch (err) {
     console.error(err.response?.data || err.message);
     res.status(500).json({ error: "Failed to chat text." });
@@ -140,3 +89,16 @@ User input: ${trimmedInput}
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
 });
+
+
+function getPrompt(userInput) {
+  const defaultPrompt = `Please keep all responses concise and focused only on what is requested.
+Avoid confirmations, extra explanations, or filler phrases.
+Respond naturally and directly to the user input as if you are having a normal conversation.
+Do not add phrases like 'Sure,' 'Got it,' or 'I understand'
+Only return the direct result.`;
+
+  const command = userInput.split(" ")[0];
+  return CMS_PROMPTS[command] ? CMS_PROMPTS[command] : defaultPrompt
+};
+
