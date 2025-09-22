@@ -58,6 +58,8 @@ app.post("/refine", async (req, res) => { // Refine End Point
 // -------------------------------------------------------------------------------------
 app.post("/chat", async (req, res) => {  // Chat End Point
   const userText = req.body.text?.trim() || "";
+  console.log("userText ::>", userText);
+  
 
   const prompt = `${getPrompt(userText)} ${userText}`
 
