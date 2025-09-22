@@ -9,7 +9,7 @@ A powerful AI android Keybaord App with tons of AI commands designed to refine, 
 - **Multi-language Support**: Specialized handling for Hinglish and Romanized scripts
 
 
-## 📋 All Available Commands
+## 📋 All Commands Info
 
 #### 🔄 Basic Text Operations
 | Command | Prompt                                   | Alias           |
