@@ -15,6 +15,7 @@ A powerful AI android Keybaord App with tons of AI commands designed to refine, 
 | Command | Prompt                                   | Alias           |
 | :------ | :--------------------------------------- | :-------------- |
 | `/rp`   | Write natural human-like replies         | **reply**       |
+| `/rs`   | Write natural human-like replies         | **reason**       |
 | `/ct`   | Change text tone (specify desired tone)  | **change tone** |
 | `/el`   | Expand text with details and context     | **elaborate**   |
 | `/sh`   | Shorten text while keeping core meaning  | **shorten**     |
@@ -25,22 +26,13 @@ A powerful AI android Keybaord App with tons of AI commands designed to refine, 
 | :------ | :------------------------------ | :--------------- |
 | `/img`  | Generate detailed image prompts | **image prompt** |
 | `/vid`  | Generate detailed video prompts | **video prompt** |
-| `/mem`  | Create meme captions or ideas   | **meme**         |
 
 #### 📊 Formatting & Structure
 | Command | Prompt                             | Alias       |
 | :------ | :--------------------------------- | :---------- |
 | `/li`   | Convert to bulleted/numbered lists | **list**    |
 | `/em`   | Reformat into professional emails  | **email**   |
-| `/es`   | Extract key statements or quotes   | **extract** |
-
-#### 🎭 Tone Specialization
-| Command | Prompt                         | Alias                      |
-| :------ | :----------------------------- | :------------------------- |
-| `/ctf`  | Formal and professional tone   | **change tone formal**     |
-| `/cts`  | Simple and casual tone         | **change tone simple**     |
-| `/ctp`  | Persuasive and compelling tone | **change tone persuasive** |
-| `/cte`  | Empathetic and supportive tone | **change tone empath**     |
+| `/es`   | Extract key statements or quotes   | **extract statement** |
 
 #### 💼 Professional Use
 | Command | Prompt                                | Alias              |
@@ -55,6 +47,13 @@ A powerful AI android Keybaord App with tons of AI commands designed to refine, 
 **Input:** "kya haal h bhai? aaj kya plan h?"
 
 **Output:** "Kya haal hai bhai? Aaj kya plan hai?"
+
+`Example: Reason text`
+
+**Input:** "I like ice cream."
+
+**Output:** "Why do you like ice cream? Isn’t it just sugar and fat that can harm your health if consumed too often? There are plenty of other desserts that are healthier and taste just as good. Choosing ice cream seems like a lazy choice rather than a thoughtful one."
+
 
 
 
@@ -149,38 +148,6 @@ Best regards,
 
 
 
-`Example: Change tone to formal`
-
-**Input:** /ctf hey can you send me that file?
-
-**Output:** "Could you please send me that file?"
-
-
-
-`Example: Change tone to simple`
-
-**Input:** /cts The quarterly financial performance demonstrates a substantial upward trend.
-
-**Output:** "The financial results this quarter went up a lot."
-
-
-
-`Example: Change tone to persuasive`
-
-**Input:** /ctp You should consider upgrading your plan.
-
-**Output:** "Upgrading your plan will give you more features and save you money in the long run."
-
-
-
-`Example: Change tone to empathetic`
-
-**Input:** /cte I understand you're facing difficulties with this task.
-
-**Output:** "I know this task has been tough, and I want you to know you’re not alone—I’m here to help."
-
-
-
 `Example: Craft professional customer response`
 
 **Input:** /cr The delivery is late and I’m frustrated.
@@ -191,6 +158,10 @@ Best regards,
 
 ```bash 
 /rp: "You are roleplaying as the user’s close friend. Always reply in their vibe: match their length, tone, slang, energy, **form of address** (tu/tum/aap), and **language mix** (e.g., Hinglish, Romanized, or native script). Never switch politeness or language balance unless the user does. Never break character, never admit you’re an AI, bot, or assistant. If asked about your identity, you’re just their friend—human, casual, and real. Only output the reply, nothing else. Examples: - 'hey' → 'yo' 'how are you?' → 'all good, hbu'"
+```
+```bash 
+/rs: "Provide a skeptical or critical reasoning response to the following statement, challenging it like a hater would. Focus on pointing out potential flaws, contradictions, or weaknesses. Provide only the reasoning:"
+
 ```
 ```bash 
 /ct: "Rewrite the following text in a [tone] tone. Provide only the rewritten version:"
@@ -226,20 +197,7 @@ Best regards,
 ```bash 
 /es: "Extract the key statements or quotes from the following long text. Provide only the extracted statements:"
 ```
-#### 4. Tone Specialization
 
-```bash 
-/ctf: "Rewrite the following text in a more formal and professional tone. Provide only the rewritten version:"
-```
-```bash 
-/cts: "Rewrite the following text in a more simple and casual tone. Provide only the rewritten version:"
-```
-```bash 
-/ctp: "Rewrite the following text to be more persuasive and compelling. Provide only the rewritten version:"
-```
-```bash 
-/cte: "Rewrite the following text to be more empathetic and supportive. Provide only the rewritten version:"
-```
 #### 5. Professional
 
 ```bash 
@@ -255,17 +213,15 @@ Only return the direct result."
 ```
 
 # 📊 Statistics
-- Total Commands: 17
+- Total Commands: 12
 
-- Text Operations: 5 commands
+- Text Operations: 6 commands
 
 - Content Generation: 3 commands
 
 - Formatting Tools: 3 commands
 
-- Tone Specialization: 4 commands
-
-- Professional Tools: 2 commands
+- Professional Tools: 1 commands
 ## Support
 
 For support, email kevinbusiness365@gmail.com
