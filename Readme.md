@@ -9,11 +9,8 @@ A powerful AI android Keybaord App with tons of AI commands designed to refine, 
 - **Multi-language Support**: Specialized handling for Hinglish and Romanized scripts
 
 
-<<<<<<< HEAD
 ## 📋 All Available Commands
-=======
 ## 📋 All Commands Info
->>>>>>> b6f02ae7be4b2424e52aa48318418c35c0f04149
 
 #### 🔄 Basic Text Operations
 | Command | Prompt                                   | Alias           |
@@ -182,41 +179,6 @@ Best regards,
 
 
 
-<<<<<<< HEAD
-`Example: Change tone to formal`
-
-**Input:** /ctf hey can you send me that file?
-
-**Output:** "Could you please send me that file?"
-
-
-
-`Example: Change tone to simple`
-
-**Input:** /cts The quarterly financial performance demonstrates a substantial upward trend.
-
-**Output:** "The financial results this quarter went up a lot."
-
-
-
-`Example: Change tone to persuasive`
-
-**Input:** /ctp You should consider upgrading your plan.
-
-**Output:** "Upgrading your plan will give you more features and save you money in the long run."
-
-
-
-`Example: Change tone to empathetic`
-
-**Input:** /cte I understand you're facing difficulties with this task.
-
-**Output:** "I know this task has been tough, and I want you to know you’re not alone—I’m here to help."
-
-
-
-=======
->>>>>>> b6f02ae7be4b2424e52aa48318418c35c0f04149
 `Example: Craft professional customer response`
 
 **Input:** /cr The delivery is late and I’m frustrated.
