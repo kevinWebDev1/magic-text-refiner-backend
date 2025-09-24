@@ -95,7 +95,7 @@ app.post("/chat", async (req, res) => {
 
     const elapsed = Date.now() - start; // end timer
     console.log(`⏱ /refine response time: ${elapsed} ms`);
-    
+
     res.json({ chatReply });
   } catch (err) {
     console.error(err.response?.data || err.message);
