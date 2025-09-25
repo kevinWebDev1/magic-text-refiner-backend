@@ -122,8 +122,11 @@ Respond naturally and directly to the user input as if you are having a normal c
 Do not add phrases like 'Sure,' 'Got it,' or 'I understand'.
 Only return the direct result.`;
 
-  const command = userInput.split(" ")[0];
-  return CMS_PROMPTS[command] ? CMS_PROMPTS[command] : defaultPrompt;
+  // Create a regex pattern to match any command as whole words
+  const commandPattern = new RegExp(`\\b(${CMDs.map(cmd => cmd.replace('/', '\\/')).join('|')})\\b`);
+  const match = userInput.match(commandPattern);
+  
+  return match ? CMS_PROMPTS[match[1]] : defaultPrompt;
 }
 
 // ---------------------- SERVER ----------------------
