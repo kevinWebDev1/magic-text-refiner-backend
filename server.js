@@ -34,8 +34,8 @@ app.post("/refine", async (req, res) => {
 
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
 
-  const PROMPT_TO_REFINE_TEXT = `Decode and correct heavily abbreviated or misspelled Hinglish text. 
-Fix grammar, spelling, and clarity while preserving its original language (Romanized or native script), 
+  const PROMPT_TO_REFINE_TEXT = `Decode and correct heavily abbreviated or misspelled text. 
+Fix grammar, spelling, and clarity while preserving its original language (Romanized or hinglish script ), 
 tone, and intent. Provide only the final corrected version: ${userText}`;
 
   const start = Date.now();
