@@ -18,9 +18,6 @@ app.use(bodyParser.json());
 // API config
 const MODEL_NAME = "gemini-2.5-flash-lite"; // really fast
 
-const API_KEY = process.env.GEMINI_API_KEY;
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
-
 // Root
 app.get("/", (_, res) => {
   res.send("✅ Server is running.");
@@ -29,13 +26,19 @@ app.get("/", (_, res) => {
 // ---------------------- REFINE ENDPOINT ----------------------
 app.post("/refine", async (req, res) => {
   const userText = req.body.text?.trim() || "";
+  const userApiKey = req.headers.authorization?.replace('Bearer ', '');
+
+  if (!userApiKey) {
+    return res.status(401).json({ error: "API key required" });
+  }
+
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
 
   const PROMPT_TO_REFINE_TEXT = `Decode and correct heavily abbreviated or misspelled Hinglish text. 
 Fix grammar, spelling, and clarity while preserving its original language (Romanized or native script), 
 tone, and intent. Provide only the final corrected version: ${userText}`;
 
-  const start = Date.now(); // start timer
-  
+  const start = Date.now();
 
   try {
     const response = await axios.post(
@@ -56,9 +59,8 @@ tone, and intent. Provide only the final corrected version: ${userText}`;
     const refinedText =
       response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
 
-    const elapsed = Date.now() - start; // end timer
+    const elapsed = Date.now() - start;
     console.log(`⏱ /refine response time: ${elapsed} ms`);
-    
 
     res.json({ refinedText });
   } catch (err) {
@@ -70,10 +72,19 @@ tone, and intent. Provide only the final corrected version: ${userText}`;
 // ---------------------- CHAT ENDPOINT ----------------------
 app.post("/chat", async (req, res) => {
   const userText = req.body.text?.trim() || "";
+  const userApiKey = req.headers.authorization?.replace('Bearer ', '');
+
+  if (!userApiKey) {
+    return res.status(401).json({ error: "API key required" });
+  }
+
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
+
   console.log("userText ::>", userText);
 
   const prompt = `${getPrompt(userText)} ${userText}`;
-  const start = Date.now(); // start timer
+  const start = Date.now();
+  
   try {
     const response = await axios.post(
       API_URL,
@@ -93,8 +104,8 @@ app.post("/chat", async (req, res) => {
     const chatReply =
       response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
 
-    const elapsed = Date.now() - start; // end timer
-    console.log(`⏱ /refine response time: ${elapsed} ms`);
+    const elapsed = Date.now() - start;
+    console.log(`⏱ /chat response time: ${elapsed} ms`);
 
     res.json({ chatReply });
   } catch (err) {
