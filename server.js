@@ -101,13 +101,13 @@ app.post("/chat", async (req, res) => {
       }
     );
 
-    const chatReply =
+    const chatText =
       response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
 
     const elapsed = Date.now() - start;
     console.log(`⏱ /chat response time: ${elapsed} ms`);
 
-    res.json({ chatReply });
+    res.json({ chatText });
   } catch (err) {
     console.error(err.response?.data || err.message);
     res.status(500).json({ error: "Failed to chat text." });
