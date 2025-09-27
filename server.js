@@ -34,9 +34,7 @@ app.post("/refine", async (req, res) => {
 
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
 
-  const PROMPT_TO_REFINE_TEXT = `Decode and correct heavily abbreviated or misspelled text. 
-Fix grammar, spelling, and clarity while preserving its original language (Romanized or hinglish script ), 
-tone, and intent. Provide only the final corrected version: ${userText}`;
+  const PROMPT_TO_REFINE_TEXT = `Decode and correct heavily abbreviated or misspelled text. Detect the input’s language style (Hinglish, Hindi script, English, or any other language). Correct grammar, spelling, and clarity while preserving the original tone and intent. Ensure the output remains in the same script (Romanized for Hinglish, Devanagari for Hindi, standard English for English, or the respective script for other languages). Provide only the final corrected version. Input: "${userText}"`;
 
   const start = Date.now();
 
@@ -82,7 +80,7 @@ app.post("/chat", async (req, res) => {
 
   console.log("userText ::>", userText);
 
-  const prompt = `${getPrompt(userText)} ${userText}`;
+  const prompt = `${getPrompt(userText)} "${userText}"`;
   const start = Date.now();
   
   try {
@@ -116,18 +114,25 @@ app.post("/chat", async (req, res) => {
 
 // ---------------------- PROMPT HANDLER ----------------------
 function getPrompt(userInput) {
-  const defaultPrompt = `Please keep all responses concise and focused only on what is requested.
-Avoid confirmations, extra explanations, or filler phrases.
-Respond naturally and directly to the user input as if you are having a normal conversation.
-Do not add phrases like 'Sure,' 'Got it,' or 'I understand'.
-Only return the direct result.`;
+  const defaultPrompt = `Please keep all responses concise and focused only on what is requested. Avoid confirmations, extra explanations, or filler phrases. Respond naturally and directly to the user input as if you are having a normal conversation. Do not add phrases like 'Sure,' 'Got it,' or 'I understand'. Only return the direct result.`;
 
-  // Create a regex pattern to match any command as whole words
-  const commandPattern = new RegExp(`\\b(${CMDs.map(cmd => cmd.replace('/', '\\/')).join('|')})\\b`);
+  // Build regex: match any command in CMDs if followed by space, punctuation, or end of string
+  const commandPattern = new RegExp(
+    `(${CMDs.map(cmd => cmd.replace('/', '\\/')).join('|')})(?=\\s|$|[.,!?])`,
+    'i' // case-insensitive
+  );
+
   const match = userInput.match(commandPattern);
-  
-  return match ? CMS_PROMPTS[match[1]] : defaultPrompt;
+
+  // Pick the right prompt if command exists, else default
+  const prompt = match && CMS_PROMPTS[match[1].toLowerCase()]
+    ? CMS_PROMPTS[match[1].toLowerCase()]
+    : defaultPrompt;
+
+  console.log("cmd ::>", match?.[1]);
+  return prompt;
 }
+
 
 // ---------------------- SERVER ----------------------
 app.listen(PORT, () => {
