@@ -26,7 +26,8 @@ app.get("/", (_, res) => {
 // ---------------------- REFINE ENDPOINT ----------------------
 app.post("/refine", async (req, res) => {
   const userText = req.body.text?.trim() || "";
-  const userApiKey = req.headers.authorization?.replace('Bearer ', '');
+  const userApiKey = process.env.GEMINI_API_KEY;
+  // const userApiKey = req.headers.authorization?.replace('Bearer ', '');
 
   if (!userApiKey) {
     return res.status(401).json({ error: "API key required" });
@@ -70,7 +71,9 @@ app.post("/refine", async (req, res) => {
 // ---------------------- CHAT ENDPOINT ----------------------
 app.post("/chat", async (req, res) => {
   const userText = req.body.text?.trim() || "";
-  const userApiKey = req.headers.authorization?.replace('Bearer ', '');
+  // const userApiKey = req.headers.authorization?.replace('Bearer ', '');
+  const userApiKey = process.env.GEMINI_API_KEY;
+
 
   if (!userApiKey) {
     return res.status(401).json({ error: "API key required" });

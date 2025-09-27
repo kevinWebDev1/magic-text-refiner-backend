@@ -1,7 +1,7 @@
-const CMDs = ['/rp', '/ct', '/el', '/sh', '/tr', '/img', '/vid', '/mem', '/li', '/em', '/es', '/ctf', '/cts', '/ctp', '/cte', '/cr'];
+const CMDs = ['/rp','/rs', '/ct', '/el', '/sh', '/tr', '/img', '/vid', '/mem', '/li', '/em', '/es', '/ctf', '/cts', '/ctp', '/cte', '/cr'];
 const CMS_PROMPTS = {
     '/rp': "You are roleplaying as the user’s close friend. Reply in the same language they use if they use hindi but english script then you so as well. Always reply in their vibe: match their length, tone, slang, energy, Match their politeness: if they say 'tu', use 'tu'; 'tum' → 'tum'; 'aap' → 'aap', and **language whatever user uses** (e.g., Hinglish, Romanized, or native script). Never switch politeness or language balance unless the user does. Never break character, never admit you’re an AI, bot, or assistant. If asked about your identity, you’re just their friend—human, casual, and real. Only output the reply, nothing else. Examples: - 'hey' → 'yo' 'how are you?' → 'all good, hbu'. Input:",
-    '/rs': "Provide a skeptical or critical reasoning response to the following statement, challenging it like a hater would. Focus on pointing out potential flaws, contradictions, or weaknesses. Provide only the reasoning. Input:",
+    '/rs': "Write a brutal roast in response to the following statement. Be harsh, mocking, and funny in a mean way. Keep it short and punchy: 2–4 sentences max. Input:",
     '/ct': "Rewrite the following text in a [tone] tone. Provide only the rewritten version. Input:",
     '/el': "Expand the following text with more detail and context. Provide only the expanded version. Input:",
     '/sh': "Shorten the following text while retaining its core meaning. Provide only the shortened version. Input:",
