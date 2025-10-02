@@ -1,5 +1,30 @@
 # Refine Board
 A powerful AI android Keybaord App with tons of AI commands designed to refine, transform, and generate text for various purposes. This toolkit supports multiple languages with special attention to Hinglish (Hindi-English) text processing.
+
+[![Crowdin](https://d322cqt584bo4o.cloudfront.net/simple-keyboard/localized.svg)](https://crowdin.com/project/simple-keyboard)
+
+<img src="images/screenshot-0.png"
+      alt="closeup"
+      width="500"/>
+      
+## Features:
+
+Features:
+- Small size (<1MB)
+- Adjustable keyboard height for more screen space
+- Number row
+- Swipe space to move pointer
+- Delete swipe
+- Custom theme colors
+- Minimal permissions (only Vibrate)
+- Ads-free
+
+Feature it doesn't have and probably will never have:
+- Emojis
+- GIFs
+- Spell checker
+- Swipe typing
+
 ## Core Features
 
 - **Text Refinement**: Clean up abbreviated, misspelled, or unclear text while preserving original intent
@@ -9,17 +34,13 @@ A powerful AI android Keybaord App with tons of AI commands designed to refine, 
 - **Multi-language Support**: Specialized handling for Hinglish and Romanized scripts
 
 
-## 📋 All Available Commands
 ## 📋 All Commands Info
 
 #### 🔄 Basic Text Operations
 | Command | Prompt                                   | Alias           |
 | :------ | :--------------------------------------- | :-------------- |
 | `/rp`   | Write natural human-like replies         | **reply**       |
-<<<<<<< HEAD
-=======
-| `/rs`   | Write natural human-like replies         | **reason**       |
->>>>>>> b6f02ae7be4b2424e52aa48318418c35c0f04149
+| `/rs`   | Write Roastified (roast) replies         | **roast**      |
 | `/ct`   | Change text tone (specify desired tone)  | **change tone** |
 | `/el`   | Expand text with details and context     | **elaborate**   |
 | `/sh`   | Shorten text while keeping core meaning  | **shorten**     |
@@ -30,45 +51,27 @@ A powerful AI android Keybaord App with tons of AI commands designed to refine, 
 | :------ | :------------------------------ | :--------------- |
 | `/img`  | Generate detailed image prompts | **image prompt** |
 | `/vid`  | Generate detailed video prompts | **video prompt** |
-<<<<<<< HEAD
-| `/mem`  | Create meme captions or ideas   | **meme**         |
-=======
->>>>>>> b6f02ae7be4b2424e52aa48318418c35c0f04149
 
 #### 📊 Formatting & Structure
 | Command | Prompt                             | Alias       |
 | :------ | :--------------------------------- | :---------- |
 | `/li`   | Convert to bulleted/numbered lists | **list**    |
 | `/em`   | Reformat into professional emails  | **email**   |
-<<<<<<< HEAD
 | `/es`   | Extract key statements or quotes   | **extract** |
 
 #### 🎭 Tone Specialization
 | Command | Prompt                         | Alias                      |
 | :------ | :----------------------------- | :------------------------- |
-| `/ctf`  | Formal and professional tone   | **change tone formal**     |
-| `/cts`  | Simple and casual tone         | **change tone simple**     |
-| `/ctp`  | Persuasive and compelling tone | **change tone persuasive** |
-| `/cte`  | Empathetic and supportive tone | **change tone empath**     |
+| `/ct`  | Formal and professional tone   | **change tone**     |
+
 
 #### 💼 Professional Use
 | Command | Prompt                                | Alias              |
 | :------ | :------------------------------------ | :----------------- |
 | `/cr`   | Craft professional customer responses | **craft response** |
 
-## 🧩 Demo Section
-
-=======
-| `/es`   | Extract key statements or quotes   | **extract statement** |
-
-#### 💼 Professional Use
-| Command | Prompt                                | Alias              |
-| :------ | :------------------------------------ | :----------------- |
-| `/cr`   | Craft professional customer responses | **craft response** |
 
 ## 🧩 Demo Section
-
->>>>>>> b6f02ae7be4b2424e52aa48318418c35c0f04149
 
 `Example: Refine Hinglish text`
 
@@ -76,16 +79,11 @@ A powerful AI android Keybaord App with tons of AI commands designed to refine, 
 
 **Output:** "Kya haal hai bhai? Aaj kya plan hai?"
 
-<<<<<<< HEAD
-=======
 `Example: Reason text`
 
 **Input:** "I like ice cream."
 
 **Output:** "Why do you like ice cream? Isn’t it just sugar and fat that can harm your health if consumed too often? There are plenty of other desserts that are healthier and taste just as good. Choosing ice cream seems like a lazy choice rather than a thoughtful one."
-
-
->>>>>>> b6f02ae7be4b2424e52aa48318418c35c0f04149
 
 
 `Example: Change text tone`
@@ -188,15 +186,10 @@ Best regards,
 #### 1. Text Operations
 
 ```bash 
-<<<<<<< HEAD
-/rp: "Write a natural, human-like reply to this message. Provide only the reply:"
-=======
 /rp: "You are roleplaying as the user’s close friend. Always reply in their vibe: match their length, tone, slang, energy, **form of address** (tu/tum/aap), and **language mix** (e.g., Hinglish, Romanized, or native script). Never switch politeness or language balance unless the user does. Never break character, never admit you’re an AI, bot, or assistant. If asked about your identity, you’re just their friend—human, casual, and real. Only output the reply, nothing else. Examples: - 'hey' → 'yo' 'how are you?' → 'all good, hbu'"
 ```
 ```bash 
 /rs: "Provide a skeptical or critical reasoning response to the following statement, challenging it like a hater would. Focus on pointing out potential flaws, contradictions, or weaknesses. Provide only the reasoning:"
-
->>>>>>> b6f02ae7be4b2424e52aa48318418c35c0f04149
 ```
 ```bash 
 /ct: "Rewrite the following text in a [tone] tone. Provide only the rewritten version:"
@@ -232,24 +225,12 @@ Best regards,
 ```bash 
 /es: "Extract the key statements or quotes from the following long text. Provide only the extracted statements:"
 ```
-<<<<<<< HEAD
 #### 4. Tone Specialization
 
 ```bash 
-/ctf: "Rewrite the following text in a more formal and professional tone. Provide only the rewritten version:"
+/ct: "Rewrite the following text in a more formal and professional tone. Provide only the rewritten version:"
 ```
-```bash 
-/cts: "Rewrite the following text in a more simple and casual tone. Provide only the rewritten version:"
-```
-```bash 
-/ctp: "Rewrite the following text to be more persuasive and compelling. Provide only the rewritten version:"
-```
-```bash 
-/cte: "Rewrite the following text to be more empathetic and supportive. Provide only the rewritten version:"
-```
-=======
 
->>>>>>> b6f02ae7be4b2424e52aa48318418c35c0f04149
 #### 5. Professional
 
 ```bash 
@@ -265,32 +246,18 @@ Only return the direct result."
 ```
 
 # 📊 Statistics
-<<<<<<< HEAD
-- Total Commands: 17
+- Total Commands: 13
 
 - Text Operations: 5 commands
-=======
-- Total Commands: 12
 
-- Text Operations: 6 commands
->>>>>>> b6f02ae7be4b2424e52aa48318418c35c0f04149
-
-- Content Generation: 3 commands
+- Content Generation: 2 commands
 
 - Formatting Tools: 3 commands
 
-<<<<<<< HEAD
-- Tone Specialization: 4 commands
+- Tone Specialization: 1 commands
 
-- Professional Tools: 2 commands
-## Support
-
-For support, email kevinbusiness365@gmail.com
-
-        
-=======
 - Professional Tools: 1 commands
 ## Support
 
-For support, email kevinbusiness365@gmail.com
->>>>>>> b6f02ae7be4b2424e52aa48318418c35c0f04149
+For support, email kevinbusiness62@gmail.com
+

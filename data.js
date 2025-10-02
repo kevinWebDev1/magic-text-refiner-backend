@@ -8,10 +8,9 @@ const CMS_PROMPTS = {
     '/tr': "Translate the following text into [language]. If [language] is hinglish, respond with a mixed Hindi-English translation (e.g., 'Aaj ka din acha tha'). If [language] is not hinglish, translate naturally into that language. Provide only the translation. Input:",
     '/img': "Generate a detailed, descriptive image prompt based on this text. Provide only the prompt. Input:",
     '/vid': "Generate a detailed, descriptive video prompt based on this text. Provide only the prompt. Input:",
-    '/mem': "Create a meme caption or idea based on this text. Provide only the meme concept. Input:",
     '/li': "Convert the following block of text into a bulleted or numbered list. Provide only the list. Input:",
     '/em': "Reformat the following text into a professional email. Provide only the email. Input:",
-    '/es': "Extract the key statements or quotes from the following long text. Provide only the extracted statements. Input:",
+    '/es': "Extract only the key statements or quotes from the following text. Do not include any explanations, summaries, or additional commentary. Provide only the extracted statements. Input:",
     '/cr': "Craft a professional response to this customer complaint or inquiry. Provide only the response. Input:",
 };
 
