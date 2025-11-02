@@ -16,7 +16,8 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // API config
-const MODEL_NAME = "gemini-2.5-flash-lite"; // really fast
+// const MODEL_NAME = "gemini-2.5-flash-lite"; // really fast
+const MODEL_NAME = "gemini-2.0-flash-lite"; // really fast
 
 // Root
 app.get("/", (_, res) => {
