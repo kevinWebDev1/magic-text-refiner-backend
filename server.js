@@ -6,8 +6,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Use ONE model declaration
-const MODEL = "gemini-2.0-flash"; // or whichever 2.0 model works
+// Use gemini-2.0-flash-lite
+const MODEL = "gemini-2.0-flash-lite";
 const GEMINI_URL = (key) => `https://generativelanguage.googleapis.com/v1/models/${MODEL}:generateContent?key=${key}`;
 
 // Simple rate limiting
