@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 // Try these models in order:
-const MODEL = "gemini-1.5-flash-001"; // Most reliable
+const MODEL = "gemini-2.0-flash-lite"; // Most reliable
 // const MODEL = "gemini-1.0-pro-001"; 
 // const MODEL = "gemini-pro";
 
