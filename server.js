@@ -7,7 +7,8 @@ app.use(cors());
 app.use(express.json());
 
 // Use a working Gemini model
-const MODEL = "gemini-1.5-flash";
+// const MODEL = "gemini-1.5-flash";
+const MODEL = "gemini-2.0-flash-lite";
 // const MODEL = "gemini-1.0-pro"; // Alternative if above doesn't work
 const GEMINI_URL = (key) => `https://generativelanguage.googleapis.com/v1/models/${MODEL}:generateContent?key=${key}`;
 
