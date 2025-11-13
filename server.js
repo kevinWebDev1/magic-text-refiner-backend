@@ -1,141 +1,140 @@
 const express = require("express");
 const cors = require("cors");
-const bodyParser = require("body-parser");
-require("dotenv").config();
 const axios = require("axios");
 
-// local requires
-const { CMDs } = require("./data.js");
-const { CMS_PROMPTS } = require("./data.js");
-
 const app = express();
-const PORT = process.env.PORT || 5000;
-
-// Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
-// API config
-//const MODEL_NAME = "gemini-2.5-flash-lite"; // really fast
-// const MODEL_NAME = "gemini-2.5-flash-lite"; // really fast
-const MODEL_NAME = "gemini-2.0-flash-lite"; // really fast
+// Use ONE model declaration
+const MODEL = "gemini-2.0-flash-lite";
+const GEMINI_URL = (key) => `https://generativelanguage.googleapis.com/v1/models/${MODEL}:generateContent?key=${key}`;
 
-// Root
-app.get("/", (_, res) => {
-res.send("✅ Server is running.");
+// Simple rate limiting
+const rateLimitStore = new Map();
+
+const rateLimit = (req, res, next) => {
+  const apiKey = req.headers.authorization?.replace('Bearer ', '');
+  if (!apiKey) return next();
+  
+  const now = Date.now();
+  const windowStart = now - 60000;
+  
+  if (!rateLimitStore.has(apiKey)) {
+    rateLimitStore.set(apiKey, []);
+  }
+  
+  const requests = rateLimitStore.get(apiKey).filter(time => time > windowStart);
+  rateLimitStore.set(apiKey, requests);
+  
+  if (requests.length >= 10) {
+    return res.status(429).json({ error: "Rate limit exceeded. Wait 1 minute." });
+  }
+  
+  requests.push(now);
+  next();
+};
+
+app.use(rateLimit);
+
+// Root endpoint
+app.get("/", (req, res) => {
+  res.send("✅ Server is running.");
 });
 
-// ---------------------- REFINE ENDPOINT ----------------------
-app.post("/refine", async (req, res) => {
-const userText = req.body.text?.trim() || "";
-const userApiKey = req.headers.authorization?.replace('Bearer ', '');
-
-if (!userApiKey) {
-return res.status(401).json({ error: "API key required" });
-}
-
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
-
-const PROMPT_TO_REFINE_TEXT = `Decode and correct heavily abbreviated or misspelled text. Detect the input’s language style (Hinglish, Hindi script, English, or any other language). Correct grammar, spelling, and clarity while preserving the original tone and intent. Ensure the output remains in the same script (Romanized for Hinglish, Devanagari for Hindi, standard English for English, or the respective script for other languages). Provide only the final corrected version. Input: "${userText}"`;
-
-const start = Date.now();
-
-try {
-const response = await axios.post(
-API_URL,
-{
-contents: [
-{
-role: "user",
-parts: [{ text: PROMPT_TO_REFINE_TEXT }],
-},
-],
-},
-{
-headers: { "Content-Type": "application/json" },
-}
-);
-
-const refinedText =
-response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-
-const elapsed = Date.now() - start;
-console.log(`⏱ /refine response time: ${elapsed} ms`);
-
-res.json({ refinedText });
-} catch (err) {
-console.error(err.response?.data || err.message);
-res.status(500).json({ error: "Failed to refine text." });
-}
+// Health check
+app.get("/health", (req, res) => {
+  res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
-// ---------------------- CHAT ENDPOINT ----------------------
+// Chat endpoint
 app.post("/chat", async (req, res) => {
-const userText = req.body.text?.trim() || "";
-const userApiKey = req.headers.authorization?.replace('Bearer ', '');
+  console.log("=== CHAT REQUEST ===");
+  
+  const userText = req.body.text?.trim() || "";
+  const userApiKey = req.headers.authorization?.replace('Bearer ', '');
 
-if (!userApiKey) {
-return res.status(401).json({ error: "API key required" });
-}
+  if (!userApiKey) {
+    return res.status(401).json({ error: "API key required" });
+  }
 
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
+  if (!userText) {
+    return res.status(400).json({ error: "Missing text" });
+  }
 
-console.log("userText ::>", userText);
+  try {
+    const response = await axios.post(
+      GEMINI_URL(userApiKey),
+      {
+        contents: [{ parts: [{ text: userText }] }]
+      },
+      {
+        headers: { "Content-Type": "application/json" },
+        timeout: 10000,
+      }
+    );
 
-const prompt = `${getPrompt(userText)} "${userText}"`;
-const start = Date.now();
+    const chatText = response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+    res.json({ chatText });
 
-try {
-const response = await axios.post(
-API_URL,
-{
-contents: [
-{
-role: "user",
-parts: [{ text: prompt }],
-},
-],
-},
-{
-headers: { "Content-Type": "application/json" },
-}
-);
-
-const chatText =
-response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-
-const elapsed = Date.now() - start;
-console.log(`⏱ /chat response time: ${elapsed} ms`);
-
-res.json({ chatText });
-} catch (err) {
-console.error(err.response?.data || err.message);
-res.status(500).json({ error: "Failed to chat text." });
-}
+  } catch (error) {
+    console.error("❌ Chat Error:", error.response?.data?.error?.message);
+    
+    if (error.response?.status === 429) {
+      return res.status(429).json({ error: "AI service busy. Please wait." });
+    }
+    
+    res.status(502).json({ error: "AI service unavailable" });
+  }
 });
 
-// ---------------------- PROMPT HANDLER ----------------------
-function getPrompt(userInput) {
-const defaultPrompt = `Please keep all responses concise and focused only on what is requested. Avoid confirmations, extra explanations, or filler phrases. Respond naturally and directly to the user input as if you are having a normal conversation. Do not add phrases like 'Sure,' 'Got it,' or 'I understand'. Only return the direct result.`;
+// Refine endpoint
+app.post("/refine", async (req, res) => {
+  console.log("=== REFINE REQUEST ===");
+  
+  const userText = req.body.text?.trim() || "";
+  const userApiKey = req.headers.authorization?.replace('Bearer ', '');
 
-// Build regex: match any command in CMDs if followed by space, punctuation, or end of string
-const commandPattern = new RegExp(
-`(${CMDs.map(cmd => cmd.replace('/', '\\/')).join('|')})(?=\\s|$|[.,!?])`,
-'i' // case-insensitive
-);
+  if (!userApiKey) {
+    return res.status(401).json({ error: "API key required" });
+  }
 
-const match = userInput.match(commandPattern);
+  if (!userText) {
+    return res.status(400).json({ error: "Missing text" });
+  }
 
-// Pick the right prompt if command exists, else default
-const prompt = match && CMS_PROMPTS[match[1].toLowerCase()]
-? CMS_PROMPTS[match[1].toLowerCase()]
-: defaultPrompt;
+  const prompt = `Improve and refine this text while keeping its original meaning. Fix grammar, spelling, and clarity: ${userText}`;
 
-console.log("cmd ::>", match?.[1]);
-return prompt;
-}
+  try {
+    const response = await axios.post(
+      GEMINI_URL(userApiKey),
+      {
+        contents: [{ parts: [{ text: prompt }] }]
+      },
+      {
+        headers: { "Content-Type": "application/json" },
+        timeout: 10000,
+      }
+    );
 
+    const refinedText = response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+    res.json({ refinedText });
 
-// ---------------------- SERVER ----------------------
+  } catch (error) {
+    console.error("❌ Refine Error:", error.response?.data?.error?.message);
+    
+    if (error.response?.status === 429) {
+      return res.status(429).json({ error: "AI service busy. Please wait." });
+    }
+    
+    res.status(502).json({ error: "AI service unavailable" });
+  }
+});
+
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Using model: ${MODEL}`);
+});
+
+module.exports = app;
