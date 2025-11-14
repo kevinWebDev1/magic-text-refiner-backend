@@ -47,6 +47,42 @@ app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
+// Update end point
+app.get("/app-update", (req, res) => {
+  const currentVersion = req.query.version || "1.0.0";
+  const platform = req.query.platform || "android";
+  
+  // Configure these for your app
+  const LATEST_VERSION = "2.0.0";
+  const FORCE_UPDATE = false;
+  const UPDATE_URL = "https://play.google.com/store/apps/details?id=rkr.simplekeyboard.inputmethod";
+  
+  const isUpdateAvailable = isNewerVersion(LATEST_VERSION, currentVersion);
+  
+  res.json({
+    updateAvailable: isUpdateAvailable,
+    latestVersion: LATEST_VERSION,
+    forceUpdate: FORCE_UPDATE,
+    updateUrl: UPDATE_URL,
+    changelog: "🎉 New Features:\n• AI Command Buttons\n• Smart Translation\n• Enhanced Refine\n• Better UI/UX\n\n🐛 Bug fixes and performance improvements",
+    timestamp: new Date().toISOString()
+  });
+});
+
+function isNewerVersion(latest, current) {
+  const latestParts = latest.split('.').map(Number);
+  const currentParts = current.split('.').map(Number);
+  
+  for (let i = 0; i < Math.max(latestParts.length, currentParts.length); i++) {
+    const latestNum = latestParts[i] || 0;
+    const currentNum = currentParts[i] || 0;
+    
+    if (latestNum > currentNum) return true;
+    if (latestNum < currentNum) return false;
+  }
+  return false;
+}
+
 // Chat endpoint
 app.post("/chat", async (req, res) => {
   console.log("=== CHAT REQUEST ===");
