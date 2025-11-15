@@ -8,7 +8,7 @@ app.use(express.json());
 
 // Use gemini-2.0-flash-lite
 const MODEL = "gemini-2.0-flash-lite";
-const GEMINI_URL = (key) => `https://generativelanguage.googleapis.com/v1beta/${MODEL}:generateContent?key=${key}`;
+const GEMINI_URL = (key) => `https://generativelanguage.googleapis.com/v1/${MODEL}:generateContent?key=${key}`;
 
 // Simple rate limiting
 const rateLimitStore = new Map();
