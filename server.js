@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 // --- CONFIG ---
-const MODEL = "gemini-2.0-flash-lite";
+const MODEL = "gemini-2.5-flash"; // Updated: Current stable model (Nov 2025)
 
 // --- CALL GEMINI ---
 async function gemini(prompt, key) {
@@ -41,7 +41,17 @@ const auth = (req, res, next) => {
 app.get("/app-update", (req, res) => {
   const v = req.query.version || "1.0.0";
   const latest = "2.0.0";
-  const isNew = (a, b) => a.split('.').map(Number).some((n, i) => n > (b.split('.')[i] || 0) || (n < (b.split('.')[i] || 0) ? false : false));
+  const isNew = (a, b) => {
+    const ap = a.split('.').map(Number);
+    const bp = b.split('.').map(Number);
+    for (let i = 0; i < Math.max(ap.length, bp.length); i++) {
+      const an = ap[i] || 0;
+      const bn = bp[i] || 0;
+      if (an > bn) return true;
+      if (an < bn) return false;
+    }
+    return false;
+  };
   res.json({
     updateAvailable: isNew(latest, v),
     latestVersion: latest,
