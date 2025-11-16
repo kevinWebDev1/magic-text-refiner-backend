@@ -9,30 +9,52 @@ app.use(express.json());
 
 // --- CONFIG ---
 const API_KEY = process.env.GEMINI_API_KEY;
-const MODEL = "gemini-2.5-flash"; // Latest stable model
+const MODEL = "gemini-2.5-flash"; // Confirmed stable as of Nov 2025
 
 if (!API_KEY) {
-  console.error("GEMINI_API_KEY not set in .env");
+  console.error("ERROR: GEMINI_API_KEY not set in .env");
   process.exit(1);
 }
+console.log("Using model:", MODEL);
 
-// --- CALL GEMINI ---
+// --- CALL GEMINI (WITH FULL ERROR LOGS) ---
 async function gemini(prompt) {
   try {
+    console.log("Calling Gemini with prompt:", prompt.substring(0, 100) + "..."); // Log partial prompt
     const res = await axios.post(
       `https://generativelanguage.googleapis.com/v1/${MODEL}:generateContent?key=${API_KEY}`,
       { contents: [{ parts: [{ text: prompt }] }] },
-      { timeout: 10000 }
+      { timeout: 15000 } // Slightly longer timeout
     );
-    return res.data.candidates[0].content.parts[0].text.trim();
+    const text = res.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (!text) throw new Error("Empty response from Gemini");
+    console.log("Gemini success! Response length:", text.length);
+    return text;
   } catch (e) {
-    throw new Error(
-      e.response?.status === 400 || e.response?.status === 403
-        ? "Invalid API key"
-        : e.response?.status === 429
-        ? "Quota exceeded"
-        : "AI error"
-    );
+    // LOG FULL ERROR FOR DEBUG
+    console.error("FULL GEMINI ERROR:", {
+      message: e.message,
+      status: e.response?.status,
+      statusText: e.response?.statusText,
+      data: e.response?.data,
+      code: e.code
+    });
+    
+    // Better error mapping
+    const status = e.response?.status;
+    if (status === 400 || status === 403) {
+      throw new Error(`Invalid API key: ${e.response?.data?.error?.message || 'Check .env key'}`);
+    }
+    if (status === 429) {
+      throw new Error("Quota exceeded – wait or get new key");
+    }
+    if (status === 503) {
+      throw new Error("Model overloaded (503) – try again in 1-2 min");
+    }
+    if (status >= 500) {
+      throw new Error(`Gemini server error (${status}): ${e.response?.data?.error?.message || 'Try later'}`);
+    }
+    throw new Error(`Network/AI error: ${e.message} (Status: ${status})`);
   }
 }
 
@@ -45,10 +67,8 @@ app.get("/app-update", (req, res) => {
     const ap = a.split('.').map(Number);
     const bp = b.split('.').map(Number);
     for (let i = 0; i < Math.max(ap.length, bp.length); i++) {
-      const an = ap[i] || 0;
-      const bn = bp[i] || 0;
-      if (an > bn) return true;
-      if (an < bn) return false;
+      if ((ap[i] || 0) > (bp[i] || 0)) return true;
+      if ((ap[i] || 0) < (bp[i] || 0)) return false;
     }
     return false;
   };
@@ -60,17 +80,20 @@ app.get("/app-update", (req, res) => {
 });
 
 app.post("/chat", async (req, res) => {
+  console.log("CHAT request received");
   const text = req.body.text?.trim();
   if (!text) return res.status(400).json({ error: "No text" });
   try {
     const result = await gemini(text);
     res.json({ chatText: result });
   } catch (e) {
+    console.error("CHAT failed:", e.message);
     res.status(502).json({ error: e.message, chatText: "" });
   }
 });
 
 app.post("/refine", async (req, res) => {
+  console.log("REFINE request received");
   const text = req.body.text?.trim();
   if (!text) return res.status(400).json({ error: "No text" });
   const prompt = `Fix grammar, spelling, clarity. Keep Hinglish/Hindi/English. Output only final text. Input: "${text}"`;
@@ -78,6 +101,7 @@ app.post("/refine", async (req, res) => {
     const result = await gemini(prompt);
     res.json({ refinedText: result });
   } catch (e) {
+    console.error("REFINE failed:", e.message);
     res.status(502).json({ error: e.message, refinedText: text });
   }
 });
