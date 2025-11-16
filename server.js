@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
@@ -7,34 +8,33 @@ app.use(cors());
 app.use(express.json());
 
 // --- CONFIG ---
-const MODEL = "gemini-2.5-flash"; // Updated: Current stable model (Nov 2025)
+const API_KEY = process.env.GEMINI_API_KEY;
+const MODEL = "gemini-2.5-flash"; // Latest stable model
+
+if (!API_KEY) {
+  console.error("GEMINI_API_KEY not set in .env");
+  process.exit(1);
+}
 
 // --- CALL GEMINI ---
-async function gemini(prompt, key) {
+async function gemini(prompt) {
   try {
     const res = await axios.post(
-      `https://generativelanguage.googleapis.com/v1/${MODEL}:generateContent?key=${key}`,
+      `https://generativelanguage.googleapis.com/v1/${MODEL}:generateContent?key=${API_KEY}`,
       { contents: [{ parts: [{ text: prompt }] }] },
       { timeout: 10000 }
     );
     return res.data.candidates[0].content.parts[0].text.trim();
   } catch (e) {
-    throw new Error(e.response?.status === 400 || e.response?.status === 403
-      ? "Invalid API key"
-      : e.response?.status === 429
-      ? "Quota exceeded"
-      : "AI error"
+    throw new Error(
+      e.response?.status === 400 || e.response?.status === 403
+        ? "Invalid API key"
+        : e.response?.status === 429
+        ? "Quota exceeded"
+        : "AI error"
     );
   }
 }
-
-// --- AUTH ---
-const auth = (req, res, next) => {
-  const h = req.headers.authorization;
-  if (!h?.startsWith("Bearer ")) return res.status(401).json({ error: "No API key" });
-  req.key = h.split(" ")[1].trim();
-  next();
-};
 
 // --- ENDPOINTS ---
 
@@ -59,23 +59,23 @@ app.get("/app-update", (req, res) => {
   });
 });
 
-app.post("/chat", auth, async (req, res) => {
+app.post("/chat", async (req, res) => {
   const text = req.body.text?.trim();
   if (!text) return res.status(400).json({ error: "No text" });
   try {
-    const result = await gemini(text, req.key);
+    const result = await gemini(text);
     res.json({ chatText: result });
   } catch (e) {
     res.status(502).json({ error: e.message, chatText: "" });
   }
 });
 
-app.post("/refine", auth, async (req, res) => {
+app.post("/refine", async (req, res) => {
   const text = req.body.text?.trim();
   if (!text) return res.status(400).json({ error: "No text" });
-  const prompt = `Fix grammar, spelling, clarity. Keep language (Hinglish/Hindi/English). Output only final text. Input: "${text}"`;
+  const prompt = `Fix grammar, spelling, clarity. Keep Hinglish/Hindi/English. Output only final text. Input: "${text}"`;
   try {
-    const result = await gemini(prompt, req.key);
+    const result = await gemini(prompt);
     res.json({ refinedText: result });
   } catch (e) {
     res.status(502).json({ error: e.message, refinedText: text });
