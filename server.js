@@ -1,109 +1,104 @@
-require("dotenv").config();
+// api/index.js
 const express = require("express");
 const cors = require("cors");
+const bodyParser = require("body-parser");
 const axios = require("axios");
 
 const app = express();
+const PORT = 5000;
+
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 
-// --- CONFIG ---
-const API_KEY = process.env.GEMINI_API_KEY;
-const MODEL = "gemini-2.5-flash"; // Confirmed stable as of Nov 2025
+// MODEL
+const MODEL_NAME = "gemini-2.0-flash"; // FREE, FAST
+app.get("/", (_, res) => res.send("Refiner AI Backend – LIVE"));
 
-if (!API_KEY) {
-  console.error("ERROR: GEMINI_API_KEY not set in .env");
-  process.exit(1);
-}
-console.log("Using model:", MODEL);
-
-// --- CALL GEMINI (WITH FULL ERROR LOGS) ---
-async function gemini(prompt) {
-  try {
-    console.log("Calling Gemini with prompt:", prompt.substring(0, 100) + "..."); // Log partial prompt
-    const res = await axios.post(
-      `https://generativelanguage.googleapis.com/v1/${MODEL}:generateContent?key=${API_KEY}`,
-      { contents: [{ parts: [{ text: prompt }] }] },
-      { timeout: 15000 } // Slightly longer timeout
-    );
-    const text = res.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    if (!text) throw new Error("Empty response from Gemini");
-    console.log("Gemini success! Response length:", text.length);
-    return text;
-  } catch (e) {
-    // LOG FULL ERROR FOR DEBUG
-    console.error("FULL GEMINI ERROR:", {
-      message: e.message,
-      status: e.response?.status,
-      statusText: e.response?.statusText,
-      data: e.response?.data,
-      code: e.code
-    });
-    
-    // Better error mapping
-    const status = e.response?.status;
-    if (status === 400 || status === 403) {
-      throw new Error(`Invalid API key: ${e.response?.data?.error?.message || 'Check .env key'}`);
-    }
-    if (status === 429) {
-      throw new Error("Quota exceeded – wait or get new key");
-    }
-    if (status === 503) {
-      throw new Error("Model overloaded (503) – try again in 1-2 min");
-    }
-    if (status >= 500) {
-      throw new Error(`Gemini server error (${status}): ${e.response?.data?.error?.message || 'Try later'}`);
-    }
-    throw new Error(`Network/AI error: ${e.message} (Status: ${status})`);
-  }
-}
-
-// --- ENDPOINTS ---
-
+// ---------------------- APP UPDATE ----------------------
 app.get("/app-update", (req, res) => {
-  const v = req.query.version || "1.0.0";
-  const latest = "2.0.0";
-  const isNew = (a, b) => {
+  const current = req.query.version || "1.0.0";
+  const LATEST = "2.0.0";
+  const UPDATE_URL = "https://play.google.com/store/apps/details?id=rkr.simplekeyboard.inputmethod";
+
+  const isNewer = (a, b) => {
     const ap = a.split('.').map(Number);
     const bp = b.split('.').map(Number);
     for (let i = 0; i < Math.max(ap.length, bp.length); i++) {
-      if ((ap[i] || 0) > (bp[i] || 0)) return true;
-      if ((ap[i] || 0) < (bp[i] || 0)) return false;
+      const av = ap[i] || 0;
+      const bv = bp[i] || 0;
+      if (av > bv) return true;
+      if (av < bv) return false;
     }
     return false;
   };
+
   res.json({
-    updateAvailable: isNew(latest, v),
-    latestVersion: latest,
-    updateUrl: "https://play.google.com/store/apps/details?id=rkr.simplekeyboard.inputmethod"
+    updateAvailable: isNewer(LATEST, current),
+    latestVersion: LATEST,
+    forceUpdate: false,
+    updateUrl: UPDATE_URL,
+    changelog: `New Features:
+• AI Command Buttons
+• Smart Translation
+• Enhanced Refine
+• Better UI/UX
+
+Bug fixes and performance improvements`
   });
 });
 
-app.post("/chat", async (req, res) => {
-  console.log("CHAT request received");
-  const text = req.body.text?.trim();
-  if (!text) return res.status(400).json({ error: "No text" });
-  try {
-    const result = await gemini(text);
-    res.json({ chatText: result });
-  } catch (e) {
-    console.error("CHAT failed:", e.message);
-    res.status(502).json({ error: e.message, chatText: "" });
-  }
-});
-
+// ---------------------- REFINE ----------------------
 app.post("/refine", async (req, res) => {
-  console.log("REFINE request received");
-  const text = req.body.text?.trim();
-  if (!text) return res.status(400).json({ error: "No text" });
-  const prompt = `Fix grammar, spelling, clarity. Keep Hinglish/Hindi/English. Output only final text. Input: "${text}"`;
+  const userText = req.body.text?.trim();
+  const userApiKey = req.headers.authorization?.replace("Bearer ", "");
+
+  if (!userText) return res.status(400).json({ error: "Missing 'text'" });
+  if (!userApiKey) return res.status(401).json({ error: "Missing Bearer API key" });
+
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
+
+  const PROMPT = `Decode and correct heavily abbreviated or misspelled text. Detect the input’s language style (Hinglish, Hindi script, English, or any other language). Correct grammar, spelling, and clarity while preserving the original tone and intent. Ensure the output remains in the same script (Romanized for Hinglish, Devanagari for Hindi, standard English for English, or the respective script for other languages). Provide only the final corrected version. Input: "${userText}"`;
+
   try {
-    const result = await gemini(prompt);
-    res.json({ refinedText: result });
-  } catch (e) {
-    console.error("REFINE failed:", e.message);
-    res.status(502).json({ error: e.message, refinedText: text });
+    const response = await axios.post(API_URL, {
+      contents: [{ role: "user", parts: [{ text: PROMPT }] }]
+    }, { headers: { "Content-Type": "application/json" } });
+
+    const refinedText = response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || userText;
+    res.json({ refinedText }); // Matches Android: expects "refinedText"
+  } catch (err) {
+    const msg = err.response?.data?.error?.message || err.message;
+    console.error("REFINE ERROR:", msg);
+    res.status(502).json({ error: "AI failed", details: msg });
   }
 });
 
-module.exports = app;
+// ---------------------- CHAT ----------------------
+app.post("/chat", async (req, res) => {
+  const userText = req.body.text?.trim();
+  const userApiKey = req.headers.authorization?.replace("Bearer ", "");
+
+  if (!userText) return res.status(400).json({ error: "Missing 'text'" });
+  if (!userApiKey) return res.status(401).json({ error: "Missing Bearer API key" });
+
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
+
+  try {
+    const response = await axios.post(API_URL, {
+      contents: [{ role: "user", parts: [{ text: userText }] }]
+    }, { headers: { "Content-Type": "application/json" } });
+
+    const chatText = response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "No response";
+    res.json({ chatText }); // Matches Android: expects "chatText"
+  } catch (err) {
+    const msg = err.response?.data?.error?.message || err.message;
+    console.error("CHAT ERROR:", msg);
+    res.status(502).json({ error: "AI failed", details: msg });
+  }
+});
+
+// ---------------------- START ----------------------
+app.listen(PORT, () => {
+  console.log(`Refiner AI LIVE at http://localhost:${PORT}`);
+  console.log(`Update: http://localhost:${PORT}/app-update?version=1.5.0`);
+});
