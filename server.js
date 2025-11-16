@@ -83,9 +83,11 @@ app.post("/chat", async (req, res) => {
 
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
 
+  const prompt = `To the point short direct answer no even small extra fuzz ${userText}`;
+
   try {
     const response = await axios.post(API_URL, {
-      contents: [{ role: "user", parts: [{ text: userText }] }]
+      contents: [{ role: "user", parts: [{ text: prompt }] }]
     }, { headers: { "Content-Type": "application/json" } });
 
     const chatText = response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "No response";
