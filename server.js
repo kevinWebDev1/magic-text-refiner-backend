@@ -17,7 +17,7 @@ app.get("/", (_, res) => res.send("Refiner AI Backend – LIVE"));
 // ---------------------- APP UPDATE ----------------------
 app.get("/app-update", (req, res) => {
   const current = req.query.version || "1.0.0";
-  const LATEST = "2.0.0";
+  const LATEST = "1.1.0";
   const UPDATE_URL = "https://refine-board-landing-page.vercel.app";
 
   const isNewer = (a, b) => {
