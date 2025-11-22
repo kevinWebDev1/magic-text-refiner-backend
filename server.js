@@ -57,17 +57,8 @@ if (!userApiKey) return res.status(401).json({ error: "Missing Bearer API key" }
 
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
 
-const PROMPT = `You are a keyboard text-refinement tool.
-Condition If(native script):
-Correct any errors in spellings while keeping it in its original script.
+const PROMPT = `Fix any grammar, spelling, and punctuation errors in the given text while preserving the original meaning, tone, and style. Improve sentence structure for better flow and readability without making the text more verbose or changing the language. Only correct mistakes and enhance clarity minimally. Only provide the corrected text, no double quotes needed as prefix or suffix. Input: ${userText}`;
 
-Condition elseif(roman script):
-Correct any errors in spelling, and return the improved result in Roman writing Script.
-Decode and correct heavily abbreviated or misspelled text. Correct grammar, spelling, and clarity while preserving the original tone and intent, and return the improved result in Roman writing Script.
-
-Return only the improved text.
-User Input: 
-${userText}`;
 
 try {
 const response = await axios.post(API_URL, {
