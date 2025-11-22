@@ -62,7 +62,7 @@ Condition If(native script):
 Correct any errors in spellings while keeping it in its original script.
 
 Condition elseif(roman script):
-Decode and correct heavily abbreviated or misspelled text. Correct grammar, spelling, and clarity while preserving the original tone and intent, and return the improved result in Roman writing Script.
+Decode and correct heavily abbreviated or misspelled text. Detect the input’s language style (Hinglish, English, or any other language). Correct grammar, spelling, and clarity while preserving the original tone and intent. Ensure the output remains in the same script (Romanized for Hinglish, standard English for English, or the respective script for other languages). Provide only the final corrected version;
 
 Return only the improved text.
 User Input: 
