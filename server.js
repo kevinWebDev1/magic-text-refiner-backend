@@ -16,91 +16,101 @@ app.get("/", (_, res) => res.send("Refiner AI Backend – LIVE"));
 
 // ---------------------- APP UPDATE ----------------------
 app.get("/app-update", (req, res) => {
-  const current = req.query.version || "1.0.0";
-  const LATEST = "1.1.0";
-  const UPDATE_URL = "https://refine-board-landing-page.vercel.app";
+const current = req.query.version || "1.0.0";
+const LATEST = "1.1.0";
+const UPDATE_URL = "https://refine-board-landing-page.vercel.app";
 
-  const isNewer = (a, b) => {
-    const ap = a.split('.').map(Number);
-    const bp = b.split('.').map(Number);
-    for (let i = 0; i < Math.max(ap.length, bp.length); i++) {
-      const av = ap[i] || 0;
-      const bv = bp[i] || 0;
-      if (av > bv) return true;
-      if (av < bv) return false;
-    }
-    return false;
-  };
+const isNewer = (a, b) => {
+const ap = a.split('.').map(Number);
+const bp = b.split('.').map(Number);
+for (let i = 0; i < Math.max(ap.length, bp.length); i++) {
+const av = ap[i] || 0;
+const bv = bp[i] || 0;
+if (av > bv) return true;
+if (av < bv) return false;
+}
+return false;
+};
 
-  res.json({
-    updateAvailable: isNewer(LATEST, current),
-    latestVersion: LATEST,
-    forceUpdate: false,
-    updateUrl: UPDATE_URL,
-    changelog: `New Features:
+res.json({
+updateAvailable: isNewer(LATEST, current),
+latestVersion: LATEST,
+forceUpdate: false,
+updateUrl: UPDATE_URL,
+changelog: `New Features:
 • AI Command Buttons
 • Smart Translation
 • Enhanced Refine
 • Better UI/UX
 
 Bug fixes and performance improvements`
-  });
+});
 });
 
 // ---------------------- REFINE ----------------------
 app.post("/refine", async (req, res) => {
-  const userText = req.body.text?.trim();
-  const userApiKey = req.headers.authorization?.replace("Bearer ", "");
+const userText = req.body.text?.trim();
+const userApiKey = req.headers.authorization?.replace("Bearer ", "");
 
-  if (!userText) return res.status(400).json({ error: "Missing 'text'" });
-  if (!userApiKey) return res.status(401).json({ error: "Missing Bearer API key" });
+if (!userText) return res.status(400).json({ error: "Missing 'text'" });
+if (!userApiKey) return res.status(401).json({ error: "Missing Bearer API key" });
 
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
 
-  const PROMPT = `Fix any grammar, spelling, and punctuation errors in the given text while preserving the original meaning, tone, and style. Improve sentence structure for better flow and readability without making the text more verbose or changing the language. Only correct mistakes and enhance clarity minimally. Only provide the corrected text, no double quotes needed as prefix or suffix. Input: ${userText}`;
+const PROMPT = `You are a keyboard text-refinement tool.
+Condition If(native script):
+Correct any errors in spellings while keeping it in its original script.
 
-  try {
-    const response = await axios.post(API_URL, {
-      contents: [{ role: "user", parts: [{ text: PROMPT }] }]
-    }, { headers: { "Content-Type": "application/json" } });
+Condition elseif(roman script):
+Correct any errors in spelling, and return the improved result in Roman writing Script.
+Decode and correct heavily abbreviated or misspelled text. Correct grammar, spelling, and clarity while preserving the original tone and intent, and return the improved result in Roman writing Script.
 
-    const refinedText = response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || userText;
-    res.json({ refinedText }); // Matches Android: expects "refinedText"
-  } catch (err) {
-    const msg = err.response?.data?.error?.message || err.message;
-    console.error("REFINE ERROR:", msg);
-    res.status(502).json({ error: "AI failed", details: msg });
-  }
+Return only the improved text.
+User Input: 
+${userText}`;
+
+try {
+const response = await axios.post(API_URL, {
+contents: [{ role: "user", parts: [{ text: PROMPT }] }]
+}, { headers: { "Content-Type": "application/json" } });
+
+const refinedText = response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || userText;
+res.json({ refinedText }); // Matches Android: expects "refinedText"
+} catch (err) {
+const msg = err.response?.data?.error?.message || err.message;
+console.error("REFINE ERROR:", msg);
+res.status(502).json({ error: "AI failed", details: msg });
+}
 });
 
 // ---------------------- CHAT ----------------------
 app.post("/chat", async (req, res) => {
-  const userText = req.body.text?.trim();
-  const userApiKey = req.headers.authorization?.replace("Bearer ", "");
+const userText = req.body.text?.trim();
+const userApiKey = req.headers.authorization?.replace("Bearer ", "");
 
-  if (!userText) return res.status(400).json({ error: "Missing 'text'" });
-  if (!userApiKey) return res.status(401).json({ error: "Missing Bearer API key" });
+if (!userText) return res.status(400).json({ error: "Missing 'text'" });
+if (!userApiKey) return res.status(401).json({ error: "Missing Bearer API key" });
 
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
 
-  const prompt = `To the point short direct answer no even small extra fuzz ${userText}`;
+const prompt = `To the point short direct answer no even small extra fuzz ${userText}`;
 
-  try {
-    const response = await axios.post(API_URL, {
-      contents: [{ role: "user", parts: [{ text: prompt }] }]
-    }, { headers: { "Content-Type": "application/json" } });
+try {
+const response = await axios.post(API_URL, {
+contents: [{ role: "user", parts: [{ text: prompt }] }]
+}, { headers: { "Content-Type": "application/json" } });
 
-    const chatText = response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "No response";
-    res.json({ chatText }); // Matches Android: expects "chatText"
-  } catch (err) {
-    const msg = err.response?.data?.error?.message || err.message;
-    console.error("CHAT ERROR:", msg);
-    res.status(502).json({ error: "AI failed", details: msg });
-  }
+const chatText = response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "No response";
+res.json({ chatText }); // Matches Android: expects "chatText"
+} catch (err) {
+const msg = err.response?.data?.error?.message || err.message;
+console.error("CHAT ERROR:", msg);
+res.status(502).json({ error: "AI failed", details: msg });
+}
 });
 
 // ---------------------- START ----------------------
 app.listen(PORT, () => {
-  console.log(`Refiner AI LIVE at http://localhost:${PORT}`);
-  console.log(`Update: http://localhost:${PORT}/app-update?version=1.5.0`);
+console.log(`Refiner AI LIVE at http://localhost:${PORT}`);
+console.log(`Update: http://localhost:${PORT}/app-update?version=1.5.0`);
 });
