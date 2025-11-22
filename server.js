@@ -58,11 +58,11 @@ app.post("/refine", async (req, res) => {
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
 
 const PROMPT = `You are a keyboard text-refinement tool.
-Condition (native script):
-correct grammar, spelling, clarity, and natural flow while keeping the meaning and tone as close to the original as possible while keeping User-Input in its original script.
+Condition If(native script):
+Correct any errors in spellings while keeping it in its original script.
 
-Condition (roman script):
-correct grammar, spelling, clarity, and natural flow while keeping the meaning and tone as close to the original as possible, and return the improved User-Input result in roman script.
+Condition elseif(roman script):
+Correct any errors in spelling, and return the improved result in Roman writing Script.
 
 Return only the improved text.
 User Input: 
