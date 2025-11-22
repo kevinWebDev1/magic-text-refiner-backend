@@ -61,7 +61,7 @@ app.post("/refine", async (req, res) => {
 Then correct grammar, spelling, clarity, and natural flow while keeping the meaning and tone as close to the original as possible.
 Make the output sound natural for everyday texting.
 If the message is incomplete, unclear, or broken, rewrite it in the most likely intended meaning.
-Return only the improved text but also add label of the detected language.
+Return only the improved text but also add label of the detected language and according to it's label translate it.
 Input: ${userText}`;
 
   try {
