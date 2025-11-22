@@ -57,7 +57,9 @@ app.post("/refine", async (req, res) => {
 
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
 
-  const PROMPT = `you're a keyboard text improver, which fix grammer, spelling and mistakes and Return ONLY the improved text with given output in the same way as user input: ${userText}`;
+  const PROMPT = `You are a text-refinement engine inside a keyboard app. Fix grammar, spelling, and any mistakes. 
+Expand shortened or abbreviated words into their full spelling.
+Return ONLY the improved text user input: ${userText}`;
 
   try {
     const response = await axios.post(API_URL, {
