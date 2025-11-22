@@ -15,9 +15,10 @@ const MODEL_NAME = "gemini-2.0-flash"; // FREE, FAST
 app.get("/", (_, res) => res.send("Refiner AI Backend – LIVE"));
 
 // ---------------------- APP UPDATE ----------------------
+// ---------------------- APP UPDATE ----------------------
 app.get("/app-update", (req, res) => {
 const current = req.query.version || "1.0.0";
-const LATEST = "1.1.0";
+const LATEST = "1.2.0"; // ← CHANGE THIS TO HIGHER VERSION
 const UPDATE_URL = "https://refine-board-landing-page.vercel.app";
 
 const isNewer = (a, b) => {
@@ -35,15 +36,14 @@ return false;
 res.json({
 updateAvailable: isNewer(LATEST, current),
 latestVersion: LATEST,
-forceUpdate: false,
+forceUpdate: false, // Set to true if you want to force users to update
 updateUrl: UPDATE_URL,
 changelog: `New Features:
 • AI Command Buttons
 • Smart Translation
 • Enhanced Refine
 • Better UI/UX
-
-Bug fixes and performance improvements`
+• Bug fixes and performance improvements`
 });
 });
 
