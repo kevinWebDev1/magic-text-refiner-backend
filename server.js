@@ -57,16 +57,7 @@ app.post("/refine", async (req, res) => {
 
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
 
-const PROMPT = `You are a keyboard text-refinement tool.
-Condition If(native script):
-Correct any errors in spellings while keeping it in its original script.
-
-Condition elseif(roman script):
-Decode and correct heavily abbreviated or misspelled text. Detect the input’s language style (Hinglish, English, or any other language). Correct grammar, spelling, and clarity while preserving the original tone and intent. Ensure the output remains in the same script (Romanized for Hinglish, standard English for English, or the respective script for other languages). Provide only the final corrected version;
-
-Return only the improved text.
-User Input: 
-${userText}`;
+  const PROMPT = `Fix any grammar, spelling, and punctuation errors in the given text while preserving the original meaning, tone, and style. Improve sentence structure for better flow and readability without making the text more verbose or changing the language. Only correct mistakes and enhance clarity minimally. Only provide the corrected text, no double quotes needed as prefix or suffix. Input: ${userText}`;
 
   try {
     const response = await axios.post(API_URL, {
