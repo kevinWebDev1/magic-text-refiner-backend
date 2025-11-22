@@ -57,7 +57,16 @@ app.post("/refine", async (req, res) => {
 
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
 
-const PROMPT = `you're a keyboard text improver, which fix grammer, spelling and mistakes and Return ONLY the improved text with given output in the same way as user input: ${userText}`;
+const PROMPT = `You are a keyboard text-refinement tool.
+Condition (native script):
+Refine, correct, and enhance the input text while keeping it in its original script.
+
+Condition (roman script):
+Refine, correct, and enhance the input text, and return the improved result in roman script.
+
+Return only the improved text.
+User Input: 
+${userText}`;
 
   try {
     const response = await axios.post(API_URL, {
