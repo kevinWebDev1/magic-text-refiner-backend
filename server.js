@@ -58,7 +58,7 @@ app.post("/refine", async (req, res) => {
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
 
   const PROMPT = `You are a text-refinement engine inside a keyboard app. Fix grammar, spelling, and any mistakes. 
-Expand shortened word into their full spelling.
+Make sure speelings are correct.
 Return ONLY the improved text user input: ${userText}`;
 
   try {
