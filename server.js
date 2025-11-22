@@ -59,10 +59,10 @@ app.post("/refine", async (req, res) => {
 
 const PROMPT = `You are a keyboard text-refinement tool.
 Condition (native script):
-Refine, correct, and enhance the input text while keeping it in its original script.
+correct grammar, spelling, clarity, and natural flow while keeping the meaning and tone as close to the original as possible while keeping User-Input in its original script.
 
 Condition (roman script):
-Refine, correct, and enhance the input text, and return the improved result in roman script.
+correct grammar, spelling, clarity, and natural flow while keeping the meaning and tone as close to the original as possible, and return the improved User-Input result in roman script.
 
 Return only the improved text.
 User Input: 
