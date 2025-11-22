@@ -57,7 +57,12 @@ app.post("/refine", async (req, res) => {
 
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
 
-  const PROMPT = `Decode and correct misspellings and abbreviations while preserving the input’s exact script, writing system, and style (no script conversion). Maintain the original tone and intent. Make only minimal changes for clarity. Output only the corrected text. Input: "${userText}`;
+  const PROMPT = `Detect the language and style of the user’s message (English, Hinglish, or Hindi).
+Then correct grammar, spelling, clarity, and natural flow while keeping the meaning and tone as close to the original as possible.
+Make the output sound natural for everyday texting.
+If the message is incomplete, unclear, or broken, rewrite it in the most likely intended meaning.
+Return only the improved text.
+Input: ${userText}`;
 
   try {
     const response = await axios.post(API_URL, {
