@@ -57,11 +57,8 @@ app.post("/refine", async (req, res) => {
 
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
 
-  const PROMPT = `Detect the language and style of the user’s message (English, Hinglish, or Hindi).
-Then correct grammar, spelling, clarity, and natural flow while keeping the meaning and tone as close to the original as possible.
-Make the output sound natural for everyday texting.
-If the message is incomplete, unclear, or broken, rewrite it in the most likely intended meaning.
-Return only the improved text but also add label of the detected language and according to it's label translate it.
+  const PROMPT = `Correct and improve it as it is.
+Return only the improved text.
 Input: ${userText}`;
 
   try {
