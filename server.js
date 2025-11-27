@@ -15,10 +15,9 @@ const MODEL_NAME = "gemini-2.0-flash"; // FREE, FAST
 app.get("/", (_, res) => res.send("Refiner AI Backend – LIVE"));
 
 // ---------------------- APP UPDATE ----------------------
-// ---------------------- APP UPDATE ----------------------
 app.get("/app-update", (req, res) => {
 const current = req.query.version || "1.0.0";
-const LATEST = "1.2.0"; // ← CHANGE THIS TO HIGHER VERSION
+const LATEST = "1.3.0"; // ← UPDATED TO 1.3.0 FOR NUMBER PAD RELEASE
 const UPDATE_URL = "https://refine-board-landing-page.vercel.app";
 
 const isNewer = (a, b) => {
@@ -38,12 +37,18 @@ updateAvailable: isNewer(LATEST, current),
 latestVersion: LATEST,
 forceUpdate: false, // Set to true if you want to force users to update
 updateUrl: UPDATE_URL,
-changelog: `New Features:
-• AI Command Buttons
-• Smart Translation
-• Enhanced Refine
-• Better UI/UX
-• Bug fixes and performance improvements`
+changelog: `🚀 New Features in v1.3.0:
+
+• 🔢 DEDICATED NUMBER PAD - Fast number typing with smart layout
+• 🎯 SMART KEYBOARD FLOW - 123 → Number Pad → Symbols → Back
+• ⚡ ENHANCED SYMBOLS - Better organization with quick access
+• 🎨 IMPROVED UI - Cleaner borders and better key spacing
+• 🛠️ PERFORMANCE - Smoother keyboard switching
+• 🐛 BUG FIXES - Fixed various layout and switching issues
+
+Previous Features:
+• AI Command Buttons • Smart Translation • Enhanced Refine
+• Better UI/UX • Bug fixes and performance improvements`
 });
 });
 
