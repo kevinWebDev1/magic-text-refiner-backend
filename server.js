@@ -11,7 +11,9 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // MODEL
-const MODEL_NAME = "gemini-2.0-flash"; // FREE, FAST
+// const MODEL_NAME = "gemini-2.0-flash"; // FREE, FAST
+const MODEL_NAME = "gemini-2.5-flash-lite"; 
+
 app.get("/", (_, res) => res.send("Refiner AI Backend – LIVE"));
 
 // ---------------------- APP UPDATE ----------------------
