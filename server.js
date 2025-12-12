@@ -1,123 +1,187 @@
-// api/index.js
-const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const axios = require("axios");
+import express from "express";
+import cors from "cors";
+import axios from "axios";
+import Bytez from "bytez.js";
+import "dotenv/config";
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
+// Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
-// MODEL
-// const MODEL_NAME = "gemini-2.0-flash"; // FREE, FAST
-const MODEL_NAME = "gemini-2.5-flash-lite"; 
+// MODELS
+const MODEL_NAME_GEMINI = "gemini-2.5-flash-lite"; // User's key
+const BYTEZ_MODEL = "openai/gpt-3.5-turbo"; // Backup
 
-app.get("/", (_, res) => res.send("Refiner AI Backend – LIVE"));
+// RATE LIMIT (In-Memory)
+// Map<DeviceId, { count: number, date: string }>
+const usageMap = new Map();
+const DAILY_LIMIT = 30;
 
-// ---------------------- APP UPDATE ----------------------
-app.get("/app-update", (req, res) => {
-const current = req.query.version || "1.0.0";
-const LATEST = "1.5.0"; // ← UPDATED TO 1.3.0 FOR NUMBER PAD RELEASE
-const UPDATE_URL = "https://refine-board-landing-page.vercel.app";
+const getTodayDate = () => new Date().toISOString().split('T')[0];
 
-const isNewer = (a, b) => {
-const ap = a.split('.').map(Number);
-const bp = b.split('.').map(Number);
-for (let i = 0; i < Math.max(ap.length, bp.length); i++) {
-const av = ap[i] || 0;
-const bv = bp[i] || 0;
-if (av > bv) return true;
-if (av < bv) return false;
-}
-return false;
+const checkRateLimit = (deviceId) => {
+    if (!deviceId) return { allowed: false, error: "Missing Device ID" };
+
+    const today = getTodayDate();
+    let stats = usageMap.get(deviceId);
+
+    if (!stats || stats.date !== today) {
+        stats = { count: 0, date: today };
+        usageMap.set(deviceId, stats);
+    }
+
+    if (stats.count >= DAILY_LIMIT) {
+        return { allowed: false, error: "Daily limit reached (30 requests/day). Add your own API Key to continue." };
+    }
+
+    return { allowed: true, stats };
 };
 
-res.json({
-updateAvailable: isNewer(LATEST, current),
-latestVersion: LATEST,
-forceUpdate: false, // Set to true if you want to force users to update
-updateUrl: UPDATE_URL,
-changelog: `🚀 New Features in v1.3.0:
+const incrementUsage = (deviceId) => {
+    const stats = usageMap.get(deviceId);
+    if (stats) stats.count++;
+};
 
-• 🔢 DEDICATED NUMBER PAD - Fast number typing with smart layout
-• 🎯 SMART KEYBOARD FLOW - 123 → Number Pad → Symbols → Back
-• ⚡ ENHANCED SYMBOLS - Better organization with quick access
-• 🎨 IMPROVED UI - Cleaner borders and better key spacing
-• 🛠️ PERFORMANCE - Smoother keyboard switching
-• 🐛 BUG FIXES - Fixed various layout and switching issues
+// ---------------------- LOGIC HANDLERS ----------------------
 
-Previous Features:
-• AI Command Buttons • Smart Translation • Enhanced Refine
-• Better UI/UX • Bug fixes and performance improvements`
-});
-});
+async function callGemini(text, apiKey, promptTemplate) {
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME_GEMINI}:generateContent?key=${apiKey}`;
+    try {
+        const response = await axios.post(API_URL, {
+            contents: [{ role: "user", parts: [{ text: promptTemplate }] }]
+        }, { headers: { "Content-Type": "application/json" } });
 
-// ---------------------- REFINE ----------------------
-app.post("/refine", async (req, res) => {
-const userText = req.body.text?.trim();
-const userApiKey = req.headers.authorization?.replace("Bearer ", "");
-
-if (!userText) return res.status(400).json({ error: "Missing 'text'" });
-if (!userApiKey) return res.status(401).json({ error: "Missing Bearer API key" });
-
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
-
-const PROMPT = `You are a keyboard text-refinement tool.
-Condition If(native script):
-Correct any errors in spellings while keeping it in its original script.
-
-Condition elseif(roman script):
-Decode and correct heavily abbreviated or misspelled text. Correct grammar, spelling, and clarity while preserving the original tone and intent, and return the improved result in Roman writing Script.
-Decode and correct heavily abbreviated or misspelled text. Detect the input’s language style (Hinglish, English, or any other language). Correct grammar, spelling, and clarity while preserving the original tone and intent. Ensure the output remains in the same script (Romanized for Hinglish, standard English for English, or the respective script for other languages). Provide only the final corrected version;
-
-Return only the improved text.
-User Input: 
-${userText}`;
-
-try {
-const response = await axios.post(API_URL, {
-contents: [{ role: "user", parts: [{ text: PROMPT }] }]
-}, { headers: { "Content-Type": "application/json" } });
-
-const refinedText = response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || userText;
-res.json({ refinedText }); // Matches Android: expects "refinedText"
-} catch (err) {
-const msg = err.response?.data?.error?.message || err.message;
-console.error("REFINE ERROR:", msg);
-res.status(502).json({ error: "AI failed", details: msg });
+        return response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    } catch (err) {
+        console.error("Gemini Error:", err.response?.data?.error?.message || err.message);
+        throw new Error("Gemini Failed");
+    }
 }
-});
 
-// ---------------------- CHAT ----------------------
-app.post("/chat", async (req, res) => {
-const userText = req.body.text?.trim();
-const userApiKey = req.headers.authorization?.replace("Bearer ", "");
+async function callBytez(text, promptTemplate) {
+    if (!process.env.BYTEZ_KEY) throw new Error("Server Backup Key Missing");
 
-if (!userText) return res.status(400).json({ error: "Missing 'text'" });
-if (!userApiKey) return res.status(401).json({ error: "Missing Bearer API key" });
+    // Bytez expects the exact prompt in the content usually, or we can use system role
+    // Adapting to previous backupbackend logic
+    const sdk = new Bytez(process.env.BYTEZ_KEY);
+    const model = sdk.model(BYTEZ_MODEL);
 
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
+    const { error, output } = await model.run([
+        { role: "user", content: promptTemplate }
+    ]);
 
-const prompt = `To the point short direct answer no even small extra fuzz ${userText}`;
-
-try {
-const response = await axios.post(API_URL, {
-contents: [{ role: "user", parts: [{ text: prompt }] }]
-}, { headers: { "Content-Type": "application/json" } });
-
-const chatText = response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "No response";
-res.json({ chatText }); // Matches Android: expects "chatText"
-} catch (err) {
-const msg = err.response?.data?.error?.message || err.message;
-console.error("CHAT ERROR:", msg);
-res.status(502).json({ error: "AI failed", details: msg });
+    if (error) {
+        console.error("Bytez Error:", error);
+        throw new Error("Bytez Failed");
+    }
+    return typeof output === 'string' ? output : output.content;
 }
+
+// ---------------------- ROUTES ----------------------
+
+app.get("/", (_, res) => res.send("Refiner AI Hybrid Backend – LIVE"));
+
+// UPDATE ENDPOINT
+app.get("/app-update", (req, res) => {
+    const current = req.query.version || "1.0.0";
+    const LATEST = "1.5.0";
+    const UPDATE_URL = "https://refine-board-landing-page.vercel.app";
+
+    const isNewer = (a, b) => {
+        const ap = a.split('.').map(Number);
+        const bp = b.split('.').map(Number);
+        for (let i = 0; i < Math.max(ap.length, bp.length); i++) {
+            const av = ap[i] || 0;
+            const bv = bp[i] || 0;
+            if (av > bv) return true;
+            if (av < bv) return false;
+        }
+        return false;
+    };
+
+    res.json({
+        updateAvailable: isNewer(LATEST, current),
+        latestVersion: LATEST,
+        forceUpdate: false,
+        updateUrl: UPDATE_URL,
+        changelog: `🚀 New Features in v1.5.0:\n• Reliable Hybrid Backend\n• Free Tier (30 req/day)\n• Performance Improvements`
+    });
 });
 
-// ---------------------- START ----------------------
+// SHARED HANDLER
+const handleRequest = async (req, res, type) => {
+    const userText = req.body.text?.trim();
+    let userApiKey = req.headers.authorization?.replace("Bearer ", "");
+    const deviceId = req.headers["x-device-id"];
+
+    if (!userText) return res.status(400).json({ error: "Missing 'text'" });
+
+    // TEMPLATES
+    let prompt;
+    if (type === 'refine') {
+        prompt = `You are a keyboard text-refinement tool.
+Condition If(native script): Correct spelling, keep script.
+Condition elseif(roman script): Decode, correct grammar/spelling, preserve tone. Output same script.
+Return only improved text.
+Input: ${userText}`;
+    } else {
+        prompt = `To the point short direct answer no extra fuzz. ${userText}`;
+    }
+
+    let resultText = null;
+    let notification = null;
+    let usedBackup = false;
+
+    // SCENARIO 1: USER HAS KEY (UNLIMITED)
+    if (userApiKey) {
+        try {
+            console.log(`[${type}] Trying User Key...`);
+            resultText = await callGemini(userText, userApiKey, prompt);
+        } catch (e) {
+            console.warn(`[${type}] User Key Failed, switching to Backup...`);
+            // FALLLBACK TO BACKUP (UNLIMITED FOR USER KEY HOLDERS)
+            try {
+                resultText = await callBytez(userText, prompt);
+                notification = "User API failed. Using unlimited backup.";
+                usedBackup = true;
+            } catch (backupErr) {
+                return res.status(502).json({ error: "All AI services failed." });
+            }
+        }
+    }
+    // SCENARIO 2: NO KEY (LIMITED)
+    else {
+        // CHECK LIMIT
+        const limitCheck = checkRateLimit(deviceId);
+        if (!limitCheck.allowed) {
+            return res.status(429).json({ error: limitCheck.error });
+        }
+
+        try {
+            console.log(`[${type}] Using Free Tier (Device: ${deviceId})`);
+            resultText = await callBytez(userText, prompt);
+            incrementUsage(deviceId);
+            notification = "Used free backup tier.";
+        } catch (e) {
+            return res.status(502).json({ error: "Free tier service failed." });
+        }
+    }
+
+    // RESPONSE
+    const responseKey = type === 'refine' ? 'refinedText' : 'chatText';
+    res.json({
+        [responseKey]: resultText,
+        notification: notification
+    });
+};
+
+app.post("/refine", (req, res) => handleRequest(req, res, 'refine'));
+app.post("/chat", (req, res) => handleRequest(req, res, 'chat'));
+
+// Start
 app.listen(PORT, () => {
-console.log(`Refiner AI LIVE at http://localhost:${PORT}`);
-console.log(`Update: http://localhost:${PORT}/app-update?version=1.5.0`);
+    console.log(`Hybrid Server running on port ${PORT}`);
 });
