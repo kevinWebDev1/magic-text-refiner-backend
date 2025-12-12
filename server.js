@@ -1,8 +1,7 @@
-import express from "express";
-import cors from "cors";
-import axios from "axios";
-import Bytez from "bytez.js";
-import "dotenv/config";
+const express = require("express");
+const cors = require("cors");
+const axios = require("axios");
+require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,7 +11,8 @@ app.use(cors());
 app.use(express.json());
 
 // MODELS
-const MODEL_NAME_GEMINI = "gemini-2.5-flash-lite"; // User's key
+// const MODEL_NAME_GEMINI = "gemini-2.0-flash"; // User's key
+const MODEL_NAME_GEMINI = "gemini-2.5-flash-lite";
 const BYTEZ_MODEL = "openai/gpt-3.5-turbo"; // Backup
 
 // RATE LIMIT (In-Memory)
@@ -64,8 +64,15 @@ async function callGemini(text, apiKey, promptTemplate) {
 async function callBytez(text, promptTemplate) {
     if (!process.env.BYTEZ_KEY) throw new Error("Server Backup Key Missing");
 
-    // Bytez expects the exact prompt in the content usually, or we can use system role
-    // Adapting to previous backupbackend logic
+    // LAZY LOAD BYTEZ to prevent startup crashes
+    let Bytez;
+    try {
+        Bytez = require("bytez.js");
+    } catch (e) {
+        console.error("Bytez module not found. Please run 'npm install bytez.js'");
+        throw new Error("Bytez Module Missing");
+    }
+
     const sdk = new Bytez(process.env.BYTEZ_KEY);
     const model = sdk.model(BYTEZ_MODEL);
 
@@ -166,6 +173,7 @@ Input: ${userText}`;
             incrementUsage(deviceId);
             notification = "Used free backup tier.";
         } catch (e) {
+            console.error("Free tier failed:", e);
             return res.status(502).json({ error: "Free tier service failed." });
         }
     }
@@ -182,6 +190,10 @@ app.post("/refine", (req, res) => handleRequest(req, res, 'refine'));
 app.post("/chat", (req, res) => handleRequest(req, res, 'chat'));
 
 // Start
-app.listen(PORT, () => {
-    console.log(`Hybrid Server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`Hybrid Server running on port ${PORT}`);
+    });
+}
+
+module.exports = app;
