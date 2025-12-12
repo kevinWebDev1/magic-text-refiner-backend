@@ -123,10 +123,14 @@ app.post("/refine", (req, res) => handleRequest(req, res, 'refine'));
 app.post("/chat", (req, res) => handleRequest(req, res, 'chat'));
 
 app.get("/app-update", (req, res) => {
+    const clientVersion = req.query.version || "0.0";
+    const latestVersion = "2.0";
+    const updateAvailable = clientVersion !== latestVersion;
+
     res.json({
-        updateAvailable: true, // Always true since we are forcing 2.0
-        latestVersion: "2.0",
-        forceUpdate: true,
+        updateAvailable: updateAvailable,
+        latestVersion: latestVersion,
+        forceUpdate: updateAvailable,
         updateUrl: "https://refinerkeyboard.vercel.app",
         changelog: `🚀 Version 2.0 Major Update!
 
