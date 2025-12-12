@@ -127,7 +127,7 @@ app.get("/app-update", (req, res) => {
         updateAvailable: true, // Always true since we are forcing 2.0
         latestVersion: "2.0",
         forceUpdate: true,
-        updateUrl: "https://refiner-keyboard-lite.vercel.app",
+        updateUrl: "https://refinerkeyboard.vercel.app",
         changelog: `🚀 Version 2.0 Major Update!
 
 • Google Login & Cloud Sync: Sign in to sync your clipboard across devices.
