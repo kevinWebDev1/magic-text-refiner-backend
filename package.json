@@ -1,21 +1,19 @@
 {
-  "name": "ai-keyboard",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "dev": "nodemon server.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@google/genai": "^0.9.0",
-    "axios": "^1.8.4",
-    "body-parser": "^2.2.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "openai": "^4.95.1"
-  }
+    "name": "refiner-backend",
+    "version": "1.0.0",
+    "description": "Hybrid backend for Refiner Keyboard",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "dependencies": {
+        "axios": "^1.6.0",
+        "bytez.js": "^1.0.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.0",
+        "express": "^4.18.2"
+    },
+    "engines": {
+        "node": ">=18.x"
+    }
 }
