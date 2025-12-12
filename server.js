@@ -11,7 +11,6 @@ app.use(cors());
 app.use(express.json());
 
 // MODELS
-// const MODEL_NAME_GEMINI = "gemini-2.0-flash"; // User's key
 const MODEL_NAME_GEMINI = "gemini-2.5-flash-lite";
 const BYTEZ_MODEL = "openai/gpt-3.5-turbo"; // Backup
 
@@ -34,15 +33,17 @@ const checkRateLimit = (deviceId) => {
     }
 
     if (stats.count >= DAILY_LIMIT) {
-        return { allowed: false, error: "Daily limit reached (30 requests/day). Add your own API Key to continue." };
+        return { allowed: false, error: "Daily limit reached (30 requests/day). Add your own API Key to continue.", remaining: 0 };
     }
 
-    return { allowed: true, stats };
+    // Return remaining count
+    return { allowed: true, stats, remaining: DAILY_LIMIT - stats.count };
 };
 
 const incrementUsage = (deviceId) => {
     const stats = usageMap.get(deviceId);
     if (stats) stats.count++;
+    return DAILY_LIMIT - stats.count;
 };
 
 // ---------------------- LOGIC HANDLERS ----------------------
@@ -64,7 +65,7 @@ async function callGemini(text, apiKey, promptTemplate) {
 async function callBytez(text, promptTemplate) {
     if (!process.env.BYTEZ_KEY) throw new Error("Server Backup Key Missing");
 
-    // LAZY LOAD BYTEZ to prevent startup crashes
+    // LAZY LOAD BYTEZ
     let Bytez;
     try {
         Bytez = require("bytez.js");
@@ -141,6 +142,7 @@ Input: ${userText}`;
     let resultText = null;
     let notification = null;
     let usedBackup = false;
+    let remaining = -1; // -1 means unlimited or unknown
 
     // SCENARIO 1: USER HAS KEY (UNLIMITED)
     if (userApiKey) {
@@ -163,14 +165,20 @@ Input: ${userText}`;
     else {
         // CHECK LIMIT
         const limitCheck = checkRateLimit(deviceId);
+        remaining = limitCheck.remaining;
+
         if (!limitCheck.allowed) {
-            return res.status(429).json({ error: limitCheck.error });
+            return res.status(429).json({ error: limitCheck.error, remaining: 0 });
         }
 
         try {
-            console.log(`[${type}] Using Free Tier (Device: ${deviceId})`);
+            console.log(`[${type}] Using Free Tier (Device: ${deviceId}, Rem: ${remaining})`);
             resultText = await callBytez(userText, prompt);
-            incrementUsage(deviceId);
+
+            // Increment logic
+            const newRemaining = incrementUsage(deviceId);
+            remaining = newRemaining;
+
             notification = "Used free backup tier.";
         } catch (e) {
             console.error("Free tier failed:", e);
@@ -182,7 +190,8 @@ Input: ${userText}`;
     const responseKey = type === 'refine' ? 'refinedText' : 'chatText';
     res.json({
         [responseKey]: resultText,
-        notification: notification
+        notification: notification,
+        remaining: remaining // Send usage count back to client
     });
 };
 
