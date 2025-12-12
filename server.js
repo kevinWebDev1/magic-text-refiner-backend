@@ -124,10 +124,17 @@ app.post("/chat", (req, res) => handleRequest(req, res, 'chat'));
 
 app.get("/app-update", (req, res) => {
     res.json({
-        updateAvailable: false,
-        latestVersion: "1.5.0",
+        updateAvailable: true, // Always true since we are forcing 2.0
+        latestVersion: "2.0",
+        forceUpdate: true,
         updateUrl: "https://refiner-keyboard-lite.vercel.app",
-        changelog: "• Performance Improvements"
+        changelog: `🚀 Version 2.0 Major Update!
+
+• Google Login & Cloud Sync: Sign in to sync your clipboard across devices.
+• End-to-End Encryption: Your data is secure and private.
+• New Settings Redesign: Fresh look with dedicated profile section.
+• Performance Improvements: Faster loading and smoother typing.
+• Hybrid AI Backend: Reliable free tier with smart fallback.`
     });
 });
 
