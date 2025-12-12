@@ -18,7 +18,7 @@ const BYTEZ_MODEL = "openai/gpt-3.5-turbo"; // Backup
 // RATE LIMIT (In-Memory)
 // Map<DeviceId, { count: number, date: string }>
 const usageMap = new Map();
-const DAILY_LIMIT = 3;
+const DAILY_LIMIT = 7;
 
 const getTodayDate = () => new Date().toISOString().split('T')[0];
 
