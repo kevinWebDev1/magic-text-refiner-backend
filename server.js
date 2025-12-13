@@ -12,7 +12,7 @@ app.use(express.json());
 
 // CONFIG
 const MODEL_NAME_GEMINI = "gemini-2.5-flash-lite";
-const BYTEZ_MODEL = "openai/gpt-3.5-turbo";
+const GROQ_MODEL = "qwen/qwen3-32b";
 const DAILY_LIMIT = 30; // Production Limit (Security Fallback)
 
 // IN-MEMORY LIMIT (Note: Resets on Vercel cold boot)
@@ -56,21 +56,36 @@ async function callGemini(text, apiKey, prompt) {
     }
 }
 
-async function callBytez(text, prompt) {
-    if (!process.env.BYTEZ_KEY) throw new Error("Server Backup Key Missing");
+async function callGroq(text, prompt) {
+    if (!process.env.GROQ_API_KEY) throw new Error("Groq API Key Missing");
 
-    let Bytez;
+    const { Groq } = require("groq-sdk");
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
     try {
-        Bytez = require("bytez.js");
-    } catch (e) { throw new Error("Bytez Module Missing"); }
+        const completion = await groq.chat.completions.create({
+            messages: [
+                {
+                    role: "user",
+                    content: prompt
+                }
+            ],
+            model: GROQ_MODEL,
+            temperature: 0.6,
+            max_completion_tokens: 4096,
+            top_p: 0.95,
+            stream: false,
+            // reasoning_effort: "default", // Optional, depending on model support
+            stop: null
+        });
 
-    const sdk = new Bytez(process.env.BYTEZ_KEY);
-    const model = sdk.model(BYTEZ_MODEL);
-    const { error, output } = await model.run([{ role: "user", content: prompt }]);
-
-    if (error) throw new Error("Bytez Failed");
-    return typeof output === 'string' ? output : output.content;
+        return completion.choices[0]?.message?.content || "";
+    } catch (e) {
+        console.error("Groq Error:", e.message);
+        throw new Error("Groq Failed");
+    }
 }
+
 
 // ---------------------- MAIN ROUTER ----------------------
 
@@ -101,11 +116,11 @@ const handleRequest = async (req, res, type) => {
                 resultText = await callGemini(userText, userApiKey, prompt);
             } catch (geminiErr) {
                 // FALLBACK (Unlimited for Key holders)
-                resultText = await callBytez(userText, prompt);
+                resultText = await callGroq(userText, prompt);
             }
         } else {
             // FREE TIER
-            resultText = await callBytez(userText, prompt);
+            resultText = await callGroq(userText, prompt);
             incrementUsage(deviceId);
         }
 
