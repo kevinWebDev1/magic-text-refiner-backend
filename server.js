@@ -155,13 +155,13 @@ app.get("/app-update", (req, res) => {
     latestVersion: latestVersion,
     forceUpdate: updateAvailable,
     updateUrl: "https://refinerkeyboard.vercel.app",
-    changelog: `🚀 Version 2.0 Major Update!
+    changelog: `🚀 New Version 2.2:
 
-• Google Login & Cloud Sync: Sign in to sync your clipboard across devices.
-• End-to-End Encryption: Your data is secure and private.
-• New Settings Redesign: Fresh look with dedicated profile section.
-• Performance Improvements: Faster loading and smoother typing.
-• Hybrid AI Backend: Reliable free tier with smart fallback.`,
+• Improved API integration with a redesigned setup  
+• Update your API key anytime from Settings  
+• Faster startup and smarter clipboard sync  
+• Bug fixes and stability improvements.`,
+
   });
 });
 
