@@ -157,7 +157,7 @@ app.get("/app-update", (req, res) => {
   res.json({
     updateAvailable,
     latestVersion,
-    forceUpdate: updateAvailable,
+    forceUpdate: false,
     updateUrl: "https://refinerkeyboard.vercel.app",
     changelog: `🚀 Version 2.2
 
