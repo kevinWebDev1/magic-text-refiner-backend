@@ -120,7 +120,7 @@ const handleRequest = async (req, res, type) => {
 
   const prompt =
     type === "refine"
-      ? `Refine this text. Fix grammar and spelling. Keep native script. Return ONLY the result.\nInput: ${userText}`
+      ? `decode this text, understand what user wanna type. Fix grammar and spelling. result should be exactly in same way. Return ONLY the result.\nInput: ${userText}`
       : `Reply briefly and clearly.\n${userText}`;
 
   try {
