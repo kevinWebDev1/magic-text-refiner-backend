@@ -151,7 +151,7 @@ app.post("/chat", (req, res) => handleRequest(req, res, "chat"));
 
 app.get("/app-update", (req, res) => {
   const clientVersion = req.query.version || "0.0";
-  const latestVersion = "2.2";
+  const latestVersion = "2.5";
   const updateAvailable = clientVersion !== latestVersion;
 
   res.json({
@@ -159,12 +159,12 @@ app.get("/app-update", (req, res) => {
     latestVersion,
     forceUpdate: false,
     updateUrl: "https://refinerkeyboard.vercel.app",
-    changelog: `🚀 Version 2.2
+    changelog: `🚀 Version 2.5 Major Update!
 
-• Cleaner AI output (no reasoning leaks)
-• Faster responses
-• Improved API handling
-• Bug fixes & stability improvements`,
+• Cloud Mind Sync: Secure backup for learned phrases
+• Smarter Suggestions: Instant 1-char predictions
+• Secure Clear: 10-click safety lock
+• Bug Fixes: Double-space & crash fixes`,
   });
 });
 
