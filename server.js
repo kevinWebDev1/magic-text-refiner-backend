@@ -151,7 +151,7 @@ app.post("/chat", (req, res) => handleRequest(req, res, "chat"));
 
 app.get("/app-update", (req, res) => {
   const clientVersion = req.query.version || "0.0";
-  const latestVersion = "2.5";
+  const latestVersion = "2.6";
   const updateAvailable = clientVersion !== latestVersion;
 
   res.json({
